@@ -1,0 +1,7 @@
+# Simulation outputs
+*.vcd
+*.out
+*.vvp
+
+# Icarus Verilog compiled outputs
+*.out
