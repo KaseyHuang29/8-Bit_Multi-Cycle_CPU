@@ -141,15 +141,91 @@ module cpu_top_tb;
             check_reg(4'd0); // r0
             check_reg(4'd1); // r1
             check_reg(4'd2); // r2
+
+            // check if on last cycle
+            $display("Checking if on last cycle:");
             check_cycle();
             check_reg(4'd4); // PC
             check_reg(4'd5); // PCold
 
             // extra clock cycle to check jmp 0
+            $display("Extra clock cycle to check jmp 0:");
             @ (posedge clk);
             check_cycle();
             check_reg(4'd4); // PC
             check_reg(4'd5); // PCold
+
+            // ORIGINAL DEBUG - FIXED Z IN REG (MISSING OUTPUT SIGNAL IN DATA MUX)
+            //#1;
+            // CPU.IMEM.ROM[0] = 16'h0503; // ldi r0, 5
+        
+            // CPU.IMEM.ROM[1] = 16'h0473; // ldi r1, 4
+    
+            // CPU.IMEM.ROM[2] = 16'h0014; // add r0, r1
+
+            // CPU.IMEM.ROM[3] = 16'h0082; // mov r2, r0
+
+            // CPU.IMEM.ROM[4] = 16'h000c; // jmp 0
+
+            // //repeat(50) @ (posedge clk);
+            // //@ (posedge clk)
+            // #1;
+            // $display("## CYCLE %d ##\n", CPU.FSM.cycle);
+            // $display("memRI = %0b\nIRLd = %0b\nPColdW = %0b\n", CPU.FSM.memRI, CPU.FSM.IRLd, CPU.FSM.PColdW);
+            // check_IR();
+            // $display("## NEXT CYCLE %d ##\n", CPU.FSM.nextCycle);
+            // check_reg(10'd32);
+
+            // @ (posedge clk)
+            // #1;
+            // $display("## CYCLE %d ##\n", CPU.FSM.cycle);
+            // $display("RegLd = %0b\nPCsel = %0b\nincrSel = %0b\nPCW = %0b\n", CPU.FSM.RegLd, CPU.FSM.PCsel, CPU.FSM.incrSel, CPU.FSM.PCW);
+            // check_IR();
+            // $display("## NEXT CYCLE %d ##\n", CPU.FSM.nextCycle);
+            // check_reg(10'd32);
+
+            // @ (posedge clk)
+            // #1;
+            // $display("## CYCLE %d ##\n", CPU.FSM.cycle);
+            // $display("DataSel = %b\nRFW = %b\n", CPU.FSM.dataSel, CPU.FSM.RFW);
+            // check_IR();
+            // //check_reg(10'd1);
+            // $display("regW: %d", CPU.RF.rw);
+            // $display("dataIn: %h", CPU.RF.dataIn);
+            // //$display("");
+            // $display("## NEXT CYCLE %d ##\n", CPU.FSM.nextCycle);
+
+            // @ (posedge clk)
+            // #1;
+            // $display("## CYCLE %d ##\n", CPU.FSM.cycle);
+            // $display("memRI = %0b\nIRLd = %0b\nPColdW = %0b\n", CPU.FSM.memRI, CPU.FSM.IRLd, CPU.FSM.PColdW);
+            // check_reg(10'd1);
+            // $display("## NEXT CYCLE %d ##\n", CPU.FSM.nextCycle);
+
+            // @ (posedge clk)
+            // #1;
+            // $display("## CYCLE %d ##\n", CPU.FSM.cycle);
+            // $display("RegLd = %0b\nPCsel = %0b\nincrSel = %0b\nPCW = %0b\n", CPU.FSM.RegLd, CPU.FSM.PCsel, CPU.FSM.incrSel, CPU.FSM.PCW);
+            // check_IR();
+            // $display("## NEXT CYCLE %d ##\n", CPU.FSM.nextCycle);
+            // check_reg(10'd16);
+
+            // repeat(20) @ (posedge clk);
+
+            // $display("## CYCLE %d ##\n", CPU.FSM.cycle);
+            // $display("memRI = %0b\nIRLd = %0b\nPColdW = %0b\n", CPU.FSM.memRI, CPU.FSM.IRLd, CPU.FSM.PColdW);
+            // check_IR();
+            // $display("## NEXT CYCLE %d ##\n", CPU.FSM.nextCycle);
+
+
+            // check_reg(10'd1);
+            // check_reg(10'd2);
+            // check_reg(10'd4);
+
+            // check_reg(10'd16);
+            // $display("PColdW = %d", CPU.FSM.PColdW);
+            // check_reg(10'd32);
+            // $display("PCW = %d", CPU.FSM.PCW);
         end
     endtask
 
@@ -183,76 +259,6 @@ module cpu_top_tb;
         //reset_CPU();
         //clear_ROM();
 
-        #1;
-        // CPU.IMEM.ROM[0] = 16'h0503; // ldi r0, 5
-        
-        // CPU.IMEM.ROM[1] = 16'h0473; // ldi r1, 4
-    
-        // CPU.IMEM.ROM[2] = 16'h0014; // add r0, r1
-
-        // CPU.IMEM.ROM[3] = 16'h0082; // mov r2, r0
-
-        // CPU.IMEM.ROM[4] = 16'h000c; // jmp 0
-
-        // //repeat(50) @ (posedge clk);
-        // //@ (posedge clk)
-        // #1;
-        // $display("## CYCLE %d ##\n", CPU.FSM.cycle);
-        // $display("memRI = %0b\nIRLd = %0b\nPColdW = %0b\n", CPU.FSM.memRI, CPU.FSM.IRLd, CPU.FSM.PColdW);
-        // check_IR();
-        // $display("## NEXT CYCLE %d ##\n", CPU.FSM.nextCycle);
-        // check_reg(10'd32);
-
-        // @ (posedge clk)
-        // #1;
-        // $display("## CYCLE %d ##\n", CPU.FSM.cycle);
-        // $display("RegLd = %0b\nPCsel = %0b\nincrSel = %0b\nPCW = %0b\n", CPU.FSM.RegLd, CPU.FSM.PCsel, CPU.FSM.incrSel, CPU.FSM.PCW);
-        // check_IR();
-        // $display("## NEXT CYCLE %d ##\n", CPU.FSM.nextCycle);
-        // check_reg(10'd32);
-
-        // @ (posedge clk)
-        // #1;
-        // $display("## CYCLE %d ##\n", CPU.FSM.cycle);
-        // $display("DataSel = %b\nRFW = %b\n", CPU.FSM.dataSel, CPU.FSM.RFW);
-        // check_IR();
-        // //check_reg(10'd1);
-        // $display("regW: %d", CPU.RF.rw);
-        // $display("dataIn: %h", CPU.RF.dataIn);
-        // //$display("");
-        // $display("## NEXT CYCLE %d ##\n", CPU.FSM.nextCycle);
-
-        // @ (posedge clk)
-        // #1;
-        // $display("## CYCLE %d ##\n", CPU.FSM.cycle);
-        // $display("memRI = %0b\nIRLd = %0b\nPColdW = %0b\n", CPU.FSM.memRI, CPU.FSM.IRLd, CPU.FSM.PColdW);
-        // check_reg(10'd1);
-        // $display("## NEXT CYCLE %d ##\n", CPU.FSM.nextCycle);
-
-        // @ (posedge clk)
-        // #1;
-        // $display("## CYCLE %d ##\n", CPU.FSM.cycle);
-        // $display("RegLd = %0b\nPCsel = %0b\nincrSel = %0b\nPCW = %0b\n", CPU.FSM.RegLd, CPU.FSM.PCsel, CPU.FSM.incrSel, CPU.FSM.PCW);
-        // check_IR();
-        // $display("## NEXT CYCLE %d ##\n", CPU.FSM.nextCycle);
-        // check_reg(10'd16);
-
-        // repeat(20) @ (posedge clk);
-
-        // $display("## CYCLE %d ##\n", CPU.FSM.cycle);
-        // $display("memRI = %0b\nIRLd = %0b\nPColdW = %0b\n", CPU.FSM.memRI, CPU.FSM.IRLd, CPU.FSM.PColdW);
-        // check_IR();
-        // $display("## NEXT CYCLE %d ##\n", CPU.FSM.nextCycle);
-
-
-        // check_reg(10'd1);
-        // check_reg(10'd2);
-        // check_reg(10'd4);
-
-        // check_reg(10'd16);
-        // $display("PColdW = %d", CPU.FSM.PColdW);
-        // check_reg(10'd32);
-        // $display("PCW = %d", CPU.FSM.PCW);
 
         // CPU.IMEM.ROM[0] = 16'h0903; // ldi r0, 9
         // CPU.IMEM.ROM[1] = 16'h0173; // ldi r1, 1
