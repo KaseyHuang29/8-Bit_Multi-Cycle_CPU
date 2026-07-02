@@ -53,11 +53,11 @@ module cpu_top(clk, reset);
                     .IRLd(IRLd), .PColdW(PColdW), .RegLd(RegLd), .PCsel(PCsel), 
                     .incrSel(incrSel), .PCW(PCW), .RFW(RFW), .Bsel(Bsel), .ALUop(ALUop), 
                     .ALUoutLd(ALUoutLd), .flagW(flagW), .dataSel(dataSel), .MDRLd(MDRLd), 
-                    .memRD(memRd), .memW(memW));
+                    .memRD(memRD), .memW(memW));
 
     four_one_mux_8bit DataSelect(.sel(dataSel), .a(imm8), .b(MDR_Q), .c(ALUout_Q), .d(B_Q), .out(selectedData));
 
-    reg_file RF(.ra(ra), .rb(rb), .rw(ra), .RFW(RFW), .dataIn(selectedData), .dataA(A_D), .dataB(B_D), .clk(clk));
+    reg_file RF(.ra(ra), .rb(rb), .rw(ra), .RFW(RFW), .dataIn(selectedData), .dataA(A_D), .dataB(B_D), .clk(clk), .reset(reset));
 
     two_one_mux_8bit BSelect(.sel(Bsel), .a(B_Q), .b(imm8), .out(selectedB));
 

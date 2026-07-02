@@ -9,10 +9,11 @@ module cpu_top_tb;
     //wire [7:0] RegDataCheck;
 
     integer i;
+    integer j;
+    integer k;
 
     ////// HELPER TASKS //////
 
-    // RESET CPU
     task reset_CPU;
         begin
             #1;
@@ -20,11 +21,10 @@ module cpu_top_tb;
             #5;
             reset = 0;
 
-            $display("Reset CPU.\n");
+            $display("CPU reset.\n");
         end
     endtask
 
-    // CLEAR ROM
     task clear_ROM;
         begin
             for (i = 0; i < 256; i = i + 1)
@@ -33,7 +33,15 @@ module cpu_top_tb;
         end
     endtask
 
-    // CHECK IR
+    task clear_RAM;
+        begin
+            for (j = 0; j < 256; j = j + 1)
+                CPU.DMEM.RAM[j] = 8'd0;
+
+            $display("RAM cleared.\n");
+        end
+    endtask
+
     task check_IR;
         reg [15:0] IRdata;
         begin
@@ -43,54 +51,68 @@ module cpu_top_tb;
         end
     endtask
 
+    task check_PCold;
+        $display("PCold holds 0x%h\n", CPU.PCold.Q);
+    endtask
+
+    task check_PC;
+        $display("PC holds 0x%h\n", CPU.PC.Q);
+    endtask
+
+    task check_MDR;
+        $display("MDR holds 0x%h\n", CPU.MDR.Q);
+    endtask
+
+    task check_A;
+        $display("A holds 0x%h\n", CPU.A.Q);
+    endtask
+
+    task check_B;
+        $display("B holds 0x%h\n", CPU.B.Q);
+    endtask
+
+    task check_ALUout;
+        $display("ALUout holds 0x%h\n", CPU.ALUout.Q);
+    endtask
+
+    task check_allPC;
+        input [7:0] instructions;
+        begin
+            for (k = 0; k <= instructions; k = k + 1)
+                begin
+                    @ (posedge clk);
+                    $display("k = %d", k);
+                    $display("Cycle = %d   PC = %0d   IR = %h   Next Cycle = %d\n", CPU.FSM.cycle, CPU.PC.Q, CPU.IR.Q, CPU.FSM.nextCycle);
+                end
+            $display("finished for loop");
+        end
+
+    endtask
+
     // CHECK REGS
     task check_reg;
         // r0, r1, r2, r3, PCold, PC, MDR, A, B, ALUout
-        input [3:0] reg_select;
+        input [1:0] reg_select;
         //output [7:0] regData;
         reg [7:0] regData;
 
         begin
             case(reg_select)
-                4'd0: begin
+                2'd0: begin
                     regData = CPU.RF.R0.Q;
-                    $display("r0 holds %0h\n", regData);
+                    $display("r0 holds %h\n", regData);
                 end
-                4'd1: begin
+                2'd1: begin
                     regData = CPU.RF.R1.Q;
-                    $display("r1 holds %0h\n", regData);
+                    $display("r1 holds %h\n", regData);
                 end
-                4'd2: begin
+                2'd2: begin
                     regData = CPU.RF.R2.Q;
-                    $display("r2 holds %0h\n", regData);
+                    $display("r2 holds %h\n", regData);
                 end
-                4'd3: begin
+                2'd3: begin
                     regData = CPU.RF.R3.Q;
-                    $display("r3 holds %0h\n", regData);
-                end
-                4'd4: begin
-                    regData = CPU.PCold.Q;
-                    $display("PCold holds %0h\n", regData);
-                end
-                4'd5: begin
-                    regData = CPU.PC.Q;
-                    $display("PC holds %0h\n", regData);
-                end
-                4'd6: begin
-                    regData = CPU.MDR.Q;
-                    $display("MDR holds %0h\n", regData);
-                end
-                4'd7: begin
-                    regData = CPU.A.Q;
-                    $display("A holds %0h\n", regData);
-                end
-                4'd8: begin
-                    regData = CPU.B.Q;
-                    $display("B holds %0h\n", regData);
-                end
-                4'd9: begin
-                    regData = CPU.ALUout.Q;
-                    $display("ALUout holds %0h\n", regData);
+                    $display("r3 holds %h\n", regData);
                 end
                 default: $display("invalid register.\n");
             endcase
@@ -107,6 +129,16 @@ module cpu_top_tb;
         $display("(NEXT CYCLE %d)\n", CPU.FSM.nextCycle);
     endtask
 
+    // CHECK CYCLE 0 OR 1
+    task check_cycle_0_1;
+        begin
+            if (CPU.FSM.cycle == 2'd0)
+                $display("memRI = %0b\nIRLd = %0b\nPColdW = %0b\n", CPU.FSM.memRI, CPU.FSM.IRLd, CPU.FSM.PColdW);
+            else if (CPU.FSM.cycle == 2'd1)
+                $display("RegLd = %0b\nPCsel = %0b\nincrSel = %0b\nPCW = %0b\n", CPU.FSM.RegLd, CPU.FSM.PCsel, CPU.FSM.incrSel, CPU.FSM.PCW);
+        end
+    endtask
+
     // CHECK DMEM CONTENTS
     task check_dmem;
         input [7:0] address;
@@ -114,46 +146,46 @@ module cpu_top_tb;
 
         begin
             data = CPU.DMEM.RAM[address];
-            $display("RAM holds %b at address %h", data, address);
+            $display("RAM @ 0x%h holds %b\n", data, address);
         end
     endtask
 
     ///// TEST CASES /////
 
-    task check_add_mov;
+    task check_ldi_add_mov;
         begin
+            $display("### CHECK LDI, ADD, MOV ###\n");
+
             reset_CPU();
             clear_ROM();
 
             #1;
             CPU.IMEM.ROM[0] = 16'h0503; // ldi r0, 5
-            CPU.IMEM.ROM[1] = 16'h0473; // ldi r1, 4
+            CPU.IMEM.ROM[1] = 16'h0373; // ldi r1, 3
             CPU.IMEM.ROM[2] = 16'h0014; // add r0, r1
             CPU.IMEM.ROM[3] = 16'h0082; // mov r2, r0
             CPU.IMEM.ROM[4] = 16'h000c; // jmp 0
 
-            $display("CHECK ADD, MOV");
-
             $display("ldi r0, 5\nldi r1, 4\nadd r0, r1\nmov r2, r0\njmp 0\n");
 
-            repeat(16) @ (posedge clk);
+            repeat(31) @ (posedge clk);
 
-            check_reg(4'd0); // r0
-            check_reg(4'd1); // r1
-            check_reg(4'd2); // r2
+            check_reg(2'd0); // r0
+            check_reg(2'd1); // r1
+            check_reg(2'd2); // r2
 
             // check if on last cycle
             $display("Checking if on last cycle:");
             check_cycle();
-            check_reg(4'd4); // PC
-            check_reg(4'd5); // PCold
+            check_PC(); // PC
+            check_PCold(); // PCold
 
             // extra clock cycle to check jmp 0
             $display("Extra clock cycle to check jmp 0:");
             @ (posedge clk);
             check_cycle();
-            check_reg(4'd4); // PC
-            check_reg(4'd5); // PCold
+            check_PC(); // PC
+            check_PCold(); // PCold
 
             // ORIGINAL DEBUG - FIXED Z IN REG (MISSING OUTPUT SIGNAL IN DATA MUX)
             //#1;
@@ -229,12 +261,108 @@ module cpu_top_tb;
         end
     endtask
 
-    task check_load_store;
+    task check_load_store_sub;
         begin
+            $display("### CHECK LOAD, STORE, SUB ###\n");
+
             reset_CPU();
             clear_ROM();
+            clear_RAM();
+
+            //check_dmem(8'd7);
+            //check_dmem(8'd9);
+            //check_dmem(8'd16);
+
+            CPU.IMEM.ROM[0] = 16'h0903; // ldi r0, 9
+            CPU.IMEM.ROM[1] = 16'hff42; // mov r1, r0
+            CPU.IMEM.ROM[2] = 16'h0725; // addi r0, 7
+            CPU.IMEM.ROM[3] = 16'h0041; // store r1, (r0)
+            CPU.IMEM.ROM[4] = 16'h0311; // store r0, (r1)
+            CPU.IMEM.ROM[5] = 16'h0983; // ldi r2, 9
+            CPU.IMEM.ROM[6] = 16'h10c3; // ldi r3, 16
+            CPU.IMEM.ROM[7] = 16'h00a0; // load r2, (r2)
+            CPU.IMEM.ROM[8] = 16'h00f0; // load r3, (r3)
+            CPU.IMEM.ROM[9] = 16'h00b6; // sub r2, r3
+            CPU.IMEM.ROM[10] = 16'h00a1; // store r2, (r2)
+            CPU.IMEM.ROM[11] = 16'h000c; // jmp 0
+
+            $display("ldi r0, 9\nmov r1, r0\naddi r0, 7\nstore r1, (r0)\nstore r0, (r1)\nldi r2, 9\nldi r3, 16\nload r2, (r2)\nload r3, (r3)\nsub r2, r3\nstore r2, (r2)\njmp 0\n");
 
             #1;
+            check_allPC(70);
+            // DEBUG RAM HOLDS 0?
+            //repeat(6) @ (posedge clk);
+
+            repeat(20) @ (posedge clk);
+
+            check_cycle();
+            check_IR();
+            check_reg(2'd0);
+            check_reg(2'd1);
+            check_cycle_0_1();
+            check_next_cycle();
+            
+
+
+            @ (posedge clk);
+            check_cycle();
+            check_cycle_0_1();
+            check_IR();
+            check_reg(2'd0);
+            check_reg(2'd1);
+
+            @ (posedge clk);
+            check_cycle();
+            check_cycle_0_1();
+            check_IR();
+            check_next_cycle();
+
+            @ (posedge clk);
+            check_cycle();
+            check_cycle_0_1();
+            check_IR();
+            check_next_cycle();
+            check_MDR();
+
+            @ (posedge clk);
+            check_cycle();
+            $display("did we get here");
+
+            @ (posedge clk);
+            check_cycle();
+            check_IR();
+            check_cycle_0_1();
+
+            @ (posedge clk);
+            check_cycle();
+            $display("memRD = %b\nMDRLd = %b", CPU.FSM.memRD, CPU.FSM.MDRLd);
+            check_MDR();
+            check_next_cycle();
+
+            @ (posedge clk);
+            check_cycle();
+            $display("DataSel = %b\nRFW = %b", CPU.FSM.dataSel, CPU.FSM.RFW);
+            check_MDR();
+            check_next_cycle();
+
+            #1;
+
+
+            //@ (posedge clk);
+            //check_dmem
+
+            // r0, r1, r2, r3, PCold, PC, MDR, A, B, ALUout
+
+            repeat(20) @ (posedge clk);
+            check_reg(2'd0);
+            check_reg(2'd1);
+            check_reg(2'd2);
+            check_reg(2'd3);
+
+            check_dmem(8'd7);
+            check_dmem(8'd9);
+            check_dmem(8'd16);
+
             
         end
 
@@ -256,36 +384,17 @@ module cpu_top_tb;
         $dumpfile("cpu_top_tb.vcd");
         $dumpvars(0, cpu_top_tb);
 
-        //reset_CPU();
-        //clear_ROM();
+        reset_CPU();
+        clear_ROM();
 
+        check_ldi_add_mov();
 
-        // CPU.IMEM.ROM[0] = 16'h0903; // ldi r0, 9
-        // CPU.IMEM.ROM[1] = 16'h0173; // ldi r1, 1
-        // CPU.IMEM.ROM[4] = 16'h0040; // load r2, (r0)    
-        // CPU.IMEM.ROM[2] = 16'h0014; // add r0, r1
+        #1;
 
-        // CPU.IMEM.ROM[3] = 16'h0082; // mov r2, r0
-
-        // CPU.IMEM.ROM[4] = 16'h000c; // jmp 0
-
-        // CPU.IMEM.ROM[2] = 16'h0903; // ldi r0, 9 
-        // CPU.IMEM.ROM[3] = 16'h0a43; // ldi r1, 10
-        // CPU.IMEM.ROM[4] = 16'h0040; // load r2, (r0)
-        // CPU.IMEM.ROM[5] = 16'h00d0; // load r3, (r1)
-        // CPU.IMEM.ROM[6] = 16'h00b8; // sub r2, r3
-        // CPU.IMEM.ROM[7] = 16'h0081; // store r2, (r0)
-
-        //repeat(24) @ (posedge clk);
-
-        check_add_mov();
-
+        check_load_store_sub();
 
 
         $finish;
-
-
-
 
     end
 

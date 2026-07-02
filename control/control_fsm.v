@@ -206,7 +206,7 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
                 case(opcode)
                     LOAD: 
                     begin
-                        dataSel = 2'b00;
+                        dataSel = 2'b01;
                         RFW = 1;
                         nextCycle = cycle0;
                     end
