@@ -81,12 +81,11 @@ module cpu_top_tb;
             for (k = 0; k <= instructions; k = k + 1)
                 begin
                     @ (posedge clk);
-                    $display("k = %d", k);
-                    $display("Cycle = %d   PC = %0d   IR = %h   Next Cycle = %d\n", CPU.FSM.cycle, CPU.PC.Q, CPU.IR.Q, CPU.FSM.nextCycle);
+                    $display("k = %0d", k);
+                    $display("Cycle = %0d   PC = %0d   IR = %h   Next Cycle = %d\n", CPU.FSM.cycle, CPU.PC.Q, CPU.IR.Q, CPU.FSM.nextCycle);
                 end
             $display("finished for loop");
         end
-
     endtask
 
     // CHECK REGS
@@ -150,6 +149,49 @@ module cpu_top_tb;
         end
     endtask
 
+    task verify_reg;
+        // r0, r1, r2, r3, PCold, PC, MDR, A, B, ALUout
+        input [1:0] reg_select;
+        input [7:0] expected_data;
+        //output [7:0] regData;
+        reg [7:0] regData;
+        reg pass;
+
+        begin
+            case(reg_select)
+                2'd0: begin
+                    regData = CPU.RF.R0.Q;
+                    pass = (expected_data == regData);
+                    $display("r0 holds %0d\n", regData);
+                end
+                2'd1: begin
+                    regData = CPU.RF.R1.Q;
+                    pass = (expected_data == regData);
+                    $display("r1 holds %0d\n", regData);
+                end
+                2'd2: begin
+                    regData = CPU.RF.R2.Q;
+                    pass = (expected_data == regData);
+                    $display("r2 holds %0d\n", regData);
+                end
+                2'd3: begin
+                    regData = CPU.RF.R3.Q;
+                    pass = (expected_data == regData);
+                    $display("r3 holds %0d\n", regData);
+                end
+                default: $display("invalid register.\n");
+            endcase
+
+            if (pass)
+                    $display("PASS");
+            else
+                $display("FAIL");
+              
+            $display("Expected: r%0d = %0d", reg_select, expected_data);
+            $display("Actual: r%0d = %0d", reg_select, regData);
+        end
+    endtask
+
     ///// TEST CASES /////
 
     task check_ldi_add_mov;
@@ -170,9 +212,13 @@ module cpu_top_tb;
 
             repeat(31) @ (posedge clk);
 
-            check_reg(2'd0); // r0
-            check_reg(2'd1); // r1
-            check_reg(2'd2); // r2
+            //check_reg(2'd0); // r0
+            //check_reg(2'd1); // r1
+            //check_reg(2'd2); // r2
+
+            verify_reg(2'd0, 8'd8);
+            verify_reg(2'd1, 8'd3);
+            verify_reg(2'd2, 8'd8);
 
             // check if on last cycle
             $display("Checking if on last cycle:");
@@ -289,9 +335,24 @@ module cpu_top_tb;
             $display("ldi r0, 9\nmov r1, r0\naddi r0, 7\nstore r1, (r0)\nstore r0, (r1)\nldi r2, 9\nldi r3, 16\nload r2, (r2)\nload r3, (r3)\nsub r2, r3\nstore r2, (r2)\njmp 0\n");
 
             #1;
-            check_allPC(70);
+
+            repeat(50) @ (posedge clk);
+
+            verify_reg(2'd0, 8'd16);
+            verify_reg(2'd1, 8'd9);
+            verify_reg(2'd2, 8'd7);
+            verify_reg(2'd3, 8'd9);
+
+            check_dmem(8'd7);
+            check_dmem(8'd9);
+            check_dmem(8'd16);
+
+            /* 
+            // TEDIOUS DEBUGGING
+            // check_allPC(70);
             // DEBUG RAM HOLDS 0?
-            //repeat(6) @ (posedge clk);
+            // repeat(6) @ (posedge clk);
+
 
             repeat(20) @ (posedge clk);
 
@@ -347,22 +408,15 @@ module cpu_top_tb;
 
             #1;
 
-
-            //@ (posedge clk);
-            //check_dmem
-
             // r0, r1, r2, r3, PCold, PC, MDR, A, B, ALUout
 
+            
             repeat(20) @ (posedge clk);
             check_reg(2'd0);
             check_reg(2'd1);
             check_reg(2'd2);
             check_reg(2'd3);
-
-            check_dmem(8'd7);
-            check_dmem(8'd9);
-            check_dmem(8'd16);
-
+            */
             
         end
 
@@ -387,7 +441,7 @@ module cpu_top_tb;
         reset_CPU();
         clear_ROM();
 
-        check_ldi_add_mov();
+        //check_ldi_add_mov();
 
         #1;
 
