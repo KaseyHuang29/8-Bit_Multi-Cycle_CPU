@@ -145,7 +145,7 @@ module cpu_top_tb;
 
         begin
             data = CPU.DMEM.RAM[address];
-            $display("RAM @ 0x%h holds %b\n", data, address);
+            $display("RAM @ 0x%h holds %b\n", address, data);
         end
     endtask
 
