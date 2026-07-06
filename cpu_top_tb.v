@@ -162,33 +162,50 @@ module cpu_top_tb;
                 2'd0: begin
                     regData = CPU.RF.R0.Q;
                     pass = (expected_data == regData);
-                    $display("r0 holds %0d\n", regData);
                 end
                 2'd1: begin
                     regData = CPU.RF.R1.Q;
                     pass = (expected_data == regData);
-                    $display("r1 holds %0d\n", regData);
                 end
                 2'd2: begin
                     regData = CPU.RF.R2.Q;
                     pass = (expected_data == regData);
-                    $display("r2 holds %0d\n", regData);
                 end
                 2'd3: begin
                     regData = CPU.RF.R3.Q;
                     pass = (expected_data == regData);
-                    $display("r3 holds %0d\n", regData);
                 end
                 default: $display("invalid register.\n");
             endcase
 
+            $display("Expected: r%0d holds %0d", reg_select, expected_data);
+            $display("Actual: r%0d holds %0d", reg_select, regData);
+
             if (pass)
-                    $display("PASS");
+                    $display("PASS\n");
             else
-                $display("FAIL");
-              
-            $display("Expected: r%0d = %0d", reg_select, expected_data);
-            $display("Actual: r%0d = %0d", reg_select, regData);
+                $display("FAIL\n");
+        end
+    endtask
+
+    task verify_dmem;
+        input [7:0] address;
+        input [7:0] expected_data;
+
+        reg [7:0] dmemData;
+        reg pass;
+
+        begin
+            dmemData = CPU.DMEM.RAM[address];
+            pass = (expected_data == dmemData);
+
+            $display("Expected: RAM @ 0x%h holds %b", address, expected_data);
+            $display("Actual: RAM @ 0x%h holds %b", address, dmemData);
+
+            if (pass)
+                $display("PASS\n");
+            else
+                $display("FAIL\n");
         end
     endtask
 
@@ -343,9 +360,13 @@ module cpu_top_tb;
             verify_reg(2'd2, 8'd7);
             verify_reg(2'd3, 8'd9);
 
-            check_dmem(8'd7);
-            check_dmem(8'd9);
-            check_dmem(8'd16);
+            // check_dmem(8'd7);
+            // check_dmem(8'd9);
+            // check_dmem(8'd16);
+
+            verify_dmem(8'd7, 8'd7);
+            verify_dmem(8'd9, 8'd16);
+            verify_dmem(8'd16, 8'd9);
 
             /* 
             // TEDIOUS DEBUGGING
@@ -362,8 +383,6 @@ module cpu_top_tb;
             check_reg(2'd1);
             check_cycle_0_1();
             check_next_cycle();
-            
-
 
             @ (posedge clk);
             check_cycle();
@@ -419,7 +438,6 @@ module cpu_top_tb;
             */
             
         end
-
     endtask
 
     // INITIALIZE CLOCK
@@ -441,7 +459,7 @@ module cpu_top_tb;
         reset_CPU();
         clear_ROM();
 
-        //check_ldi_add_mov();
+        check_ldi_add_mov();
 
         #1;
 
