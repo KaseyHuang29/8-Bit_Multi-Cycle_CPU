@@ -9,7 +9,7 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
 
     parameter cycle0 = 2'b00, cycle1 = 2'b01, cycle2 = 2'b10, cycle3 = 2'b11;
     parameter LOAD = 4'd0, STORE = 4'd1, MOV = 4'd2, LDI = 4'd3, ADD = 4'd4, ADDI = 4'd5, 
-              SUB = 4'd6, SHIFT = 4'd7, AND = 4'd8, OR  = 4'd9, XOR = 4'd10, NOT = 4'd11, 
+              SUB = 4'd6, SHIFT = 4'd7, AND = 4'd8, OR = 4'd9, XOR = 4'd10, NOT = 4'd11, 
               JMP = 4'd12, BNE = 4'd13, BGT = 4'd14;
 
     always @ (*)
@@ -54,13 +54,24 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
             cycle2:
             begin
                 nextCycle = cycle3;
+                memRD = 0;
+                MDRLd = 0;
+                memW = 0;
+                dataSel = 2'b00;
+                RFW = 0;
+                Bsel = 0;
+                ALUop = 3'b000;
+                flagW = 0;
+                ALUoutLd = 0;
+                PCsel = 0;
+                incrSel = 0;
+                PCW = 0;
 
                 case(opcode)
                     LOAD: 
                     begin
                         memRD = 1;
                         MDRLd = 1;
-                        nextCycle = cycle3;
                     end
 
                     STORE:
@@ -90,7 +101,6 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
                         ALUop = 3'b000;
                         flagW = 1;
                         ALUoutLd = 1;
-                        nextCycle = cycle3;
                     end
 
                     ADDI:
@@ -99,7 +109,6 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
                         ALUop = 3'b000;
                         flagW = 1;
                         ALUoutLd = 1;
-                        nextCycle = cycle3;
                     end
 
                     SUB:
@@ -108,7 +117,6 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
                         ALUop = 3'b001;
                         flagW = 1;
                         ALUoutLd = 1; 
-                        nextCycle = cycle3; 
                     end
 
                     SHIFT:
@@ -117,7 +125,6 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
                         ALUop = 3'b010;
                         flagW = 1;
                         ALUoutLd = 1;
-                        nextCycle = cycle3;
                     end
 
                     AND:
@@ -126,7 +133,6 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
                         ALUop = 3'b011;
                         flagW = 1;
                         ALUoutLd = 1;
-                        nextCycle = cycle3;
                     end
 
                     OR:
@@ -135,7 +141,6 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
                         ALUop = 3'b100;
                         flagW = 1;
                         ALUoutLd = 1;
-                        nextCycle = cycle3;
                     end
 
                     XOR:
@@ -144,7 +149,6 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
                         ALUop = 3'b101;
                         flagW = 1;
                         ALUoutLd = 1;
-                        nextCycle = cycle3;
                     end
 
                     NOT:
@@ -153,7 +157,6 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
                         ALUop = 3'b110;
                         flagW = 1;
                         ALUoutLd = 1;
-                        nextCycle = cycle3;
                     end
 
                     JMP:
@@ -169,7 +172,7 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
                         Bsel = 0;
                         ALUop = 3'b001;
                         flagW = 1;
-                        nextCycle = cycle3;
+                        // FIX THIS LOGIC WHEN IT COMES TO IT BC IDK, MAYBE DO THE CONDITION HERE ABOUT WHETHER SKIP CYCLE3
                     end
 
                     BGT:
@@ -177,7 +180,7 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
                         Bsel = 0;
                         ALUop = 3'b001;
                         flagW = 1;
-                        nextCycle = cycle3;
+                        // FIX THIS LOGIC WHEN IT COMES TO IT BC IDK, MAYBE DO THE CONDITION HERE ABOUT WHETER SKIP CYCLE3
                     end
                     
                     default:
@@ -196,75 +199,70 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
                         nextCycle = cycle3;
                     end
                 endcase
-                
             end
 
             cycle3:
             begin
                 nextCycle = cycle0;
+                dataSel = 2'b00;
+                RFW = 0;
+                PCsel = 0;
+                incrSel = 0;
+                PCW = 0;
 
                 case(opcode)
                     LOAD: 
                     begin
                         dataSel = 2'b01;
                         RFW = 1;
-                        nextCycle = cycle0;
                     end
 
                     ADD:
                     begin
                         dataSel = 2'b10;
                         RFW = 1;
-                        nextCycle = cycle0;
                     end
 
                     ADDI:
                     begin
                         dataSel = 2'b10;
                         RFW = 1;
-                        nextCycle = cycle0;
                     end
 
                     SUB:
                     begin
                         dataSel = 2'b10;
                         RFW = 1;
-                        nextCycle = cycle0;
                     end
 
                     SHIFT:
                     begin
                         dataSel = 2'b10;
                         RFW = 1;
-                        nextCycle = cycle0;
                     end
 
                     AND:
                     begin
                         dataSel = 2'b10;
                         RFW = 1;
-                        nextCycle = cycle0;
                     end
 
                     OR:
                     begin
                         dataSel = 2'b10;
                         RFW = 1;
-                        nextCycle = cycle0;
                     end
 
                     XOR:
                     begin
                         dataSel = 2'b10;
                         RFW = 1;
-                        nextCycle = cycle0;
                     end
 
                     NOT:
                     begin
                         dataSel = 2'b10;
                         RFW = 1;
-                        nextCycle = cycle0;
                     end
 
                     JMP:
@@ -272,7 +270,6 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
                         PCsel = 1;
                         incrSel = 1;
                         PCW = 1;
-                        nextCycle = cycle0;
                     end
 
                     BNE:
@@ -282,10 +279,7 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
                             PCsel = 1;
                             incrSel = 1;
                             PCW = 1;
-                            nextCycle = cycle0;
                         end
-                        else 
-                            nextCycle = cycle0;
                     end
 
                     BGT:
@@ -295,7 +289,6 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
                             PCsel = 1;
                             incrSel = 1;
                             PCW = 1;
-                            nextCycle = cycle0;
                         end
                     end
                     

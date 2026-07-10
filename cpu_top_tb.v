@@ -16,9 +16,8 @@ module cpu_top_tb;
 
     task reset_CPU;
         begin
-            #1;
             reset = 1;
-            #5;
+            #5.5;
             reset = 0;
 
             $display("CPU reset.\n");
@@ -28,7 +27,7 @@ module cpu_top_tb;
     task clear_ROM;
         begin
             for (i = 0; i < 256; i = i + 1)
-                CPU.IMEM.ROM[i] = 16'd0;
+                CPU.IMEM.ROM[i] = 16'dx;
             $display("ROM cleared.\n");
         end
     endtask
@@ -36,7 +35,7 @@ module cpu_top_tb;
     task clear_RAM;
         begin
             for (j = 0; j < 256; j = j + 1)
-                CPU.DMEM.RAM[j] = 8'd0;
+                CPU.DMEM.RAM[j] = 8'dx;
 
             $display("RAM cleared.\n");
         end
@@ -75,14 +74,19 @@ module cpu_top_tb;
         $display("ALUout holds 0x%h\n", CPU.ALUout.Q);
     endtask
 
-    task check_allPC;
-        input [7:0] instructions;
+    task display_cycles;
+        input [7:0] repeat_cycles;
         begin
-            for (k = 0; k <= instructions; k = k + 1)
+            for (k = 0; k <= repeat_cycles; k = k + 1)
                 begin
                     @ (posedge clk);
                     $display("k = %0d", k);
-                    $display("Cycle = %0d   PC = %0d   IR = %h   Next Cycle = %d\n", CPU.FSM.cycle, CPU.PC.Q, CPU.IR.Q, CPU.FSM.nextCycle);
+                    $display("Cycle = %0d   PC = %0d   IR = %h   Next Cycle = %d", CPU.FSM.cycle, CPU.PC.Q, CPU.IR.Q, CPU.FSM.nextCycle);
+                    check_reg(2'd0);
+                    check_reg(2'd1);
+                    check_reg(2'd2);
+                    check_reg(2'd3);
+                    $display("\n");
                 end
             $display("finished for loop");
         end
@@ -149,6 +153,16 @@ module cpu_top_tb;
         end
     endtask
 
+    task check_imem;
+        input [7:0] address;
+        reg [7:0] data;
+
+        begin
+            data = CPU.IMEM.ROM[address];
+            $display("RAM @ 0x%h holds %b\n", address, data);
+        end
+    endtask
+
     task verify_reg;
         // r0, r1, r2, r3, PCold, PC, MDR, A, B, ALUout
         input [1:0] reg_select;
@@ -211,7 +225,7 @@ module cpu_top_tb;
 
     ///// TEST CASES /////
 
-    task check_ldi_add_mov;
+    task test_ldi_add_mov;
         begin
             $display("### CHECK LDI, ADD, MOV ###\n");
 
@@ -225,7 +239,7 @@ module cpu_top_tb;
             CPU.IMEM.ROM[3] = 16'h0082; // mov r2, r0
             CPU.IMEM.ROM[4] = 16'h000c; // jmp 0
 
-            $display("ldi r0, 5\nldi r1, 4\nadd r0, r1\nmov r2, r0\njmp 0\n");
+            $display("ldi r0, 5\nldi r1, 3\nadd r0, r1\nmov r2, r0\njmp 0\n");
 
             repeat(31) @ (posedge clk);
 
@@ -324,7 +338,7 @@ module cpu_top_tb;
         end
     endtask
 
-    task check_load_store_sub;
+    task test_load_store_sub;
         begin
             $display("### CHECK LOAD, STORE, SUB ###\n");
 
@@ -370,7 +384,6 @@ module cpu_top_tb;
 
             /* 
             // TEDIOUS DEBUGGING
-            // check_allPC(70);
             // DEBUG RAM HOLDS 0?
             // repeat(6) @ (posedge clk);
 
@@ -440,6 +453,78 @@ module cpu_top_tb;
         end
     endtask
 
+    task test_OR;
+        begin
+            
+            //reset_CPU();
+            clear_ROM();
+            clear_RAM();
+
+            CPU.IMEM.ROM[0] = 16'hb343; // ldi r1, 179
+            CPU.IMEM.ROM[1] = 16'h6a03; // ldi r0, 106
+            CPU.IMEM.ROM[2] = 16'h0092; // mov r2, r1
+            CPU.IMEM.ROM[3] = 16'h0089; // or r2, r0
+            //CPU.IMEM.ROM[3] = 16'h0088; // and r2, r0
+            CPU.IMEM.ROM[4] = 16'h0143; // ldi r1, 1
+           // CPU.IMEM.ROM[4] = 16'h000c; // jmp 0
+
+            reset_CPU();
+
+            $display("TEST ONLY OR\n");
+
+            #1;
+
+            display_cycles(20);
+
+            verify_reg(2'd2, 8'hfb);
+        end
+    endtask
+
+    task test_alu_logic;
+        begin
+            reset_CPU();
+            clear_RAM();
+            clear_ROM();
+
+            CPU.IMEM.ROM[0]  = 16'hb343; // ldi r1, 179
+            CPU.IMEM.ROM[1]  = 16'h6a03; // ldi r0, 106
+            CPU.IMEM.ROM[2]  = 16'h0083; // ldi r2, 0
+            CPU.IMEM.ROM[3]  = 16'h0061; // store r1, (r2)
+            CPU.IMEM.ROM[4]  = 16'h0185; // addi r2, 1
+            CPU.IMEM.ROM[5]  = 16'h0021; // store r0, (r2)
+            CPU.IMEM.ROM[6]  = 16'h0092; // mov r2, r1
+            CPU.IMEM.ROM[7]  = 16'h00e2; // mov r3, r2
+            CPU.IMEM.ROM[8]  = 16'h0089; // or r2, r0
+            CPU.IMEM.ROM[9]  = 16'h00fb; // not r3
+            CPU.IMEM.ROM[10] = 16'h00d8; // and r3, r1
+            CPU.IMEM.ROM[11] = 16'h00b1; // store r2, (r3)
+            CPU.IMEM.ROM[12] = 16'h0103; // ldi r0, 1
+            CPU.IMEM.ROM[13] = 16'h0000; // load r0, (r0)
+            CPU.IMEM.ROM[14] = 16'h008a; // xor r2, r0
+            CPU.IMEM.ROM[15] = 16'h02f3; // ldi r3, 2
+            CPU.IMEM.ROM[16] = 16'h00b1; // store r2, (r3)
+            CPU.IMEM.ROM[17] = 16'h000c; // jmp 0
+
+            $display("ldi r1, 179\nldi r0, 106\nldi r2, 0\nstore r1, (r2)\naddi r2, 1\nstore r0, (r2)\nmov r2, r1\nmov r3, r2\nor r2, r0\nnot r3\nand r3, r1\nstore r2, (r3)\nldi r0, 1\nload r0, (r0)\nxor r2, r0\nldi r3, 2\nstore r2, (r3)\njmp 0\n");
+
+            #1; 
+
+            display_cycles(40);
+
+            @ (posedge clk);
+            $display("pls help");
+
+            verify_reg(2'd0, 8'd106);
+            verify_reg(2'd1, 8'd179);
+            verify_reg(2'd2, 8'd145);
+            verify_reg(2'd3, 8'd2);
+
+            verify_dmem(8'd0, 8'd251);
+            verify_dmem(8'd1, 8'd106);
+            verify_dmem(8'd2, 8'd145);
+        end
+    endtask
+
     // INITIALIZE CLOCK
     initial
     begin
@@ -459,15 +544,20 @@ module cpu_top_tb;
         reset_CPU();
         clear_ROM();
 
-        check_ldi_add_mov();
+        test_ldi_add_mov();
 
-        #1;
+        // test_load_store_sub();
 
-        check_load_store_sub();
+        // test_alu_logic();
+
+        // test_OR();
 
 
         $finish;
 
     end
+
+
+
 
 endmodule

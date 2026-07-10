@@ -21,5 +21,3 @@ module data_mem(clk, addr, dataIn, dataOut, memRD, memW);
     end
 
 endmodule
-
-

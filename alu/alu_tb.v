@@ -5,6 +5,7 @@ module alu_tb;
     reg [2:0] ALUop;
     reg [7:0] Ain, Bin;
     reg [1:0] shift2bits;
+    reg flagW;
 
     // declare DUT outputs as wire 
     wire Z, N, V;
@@ -18,10 +19,11 @@ module alu_tb;
           .Z(Z), 
           .N(N), 
           .V(V), 
-          .ALUout(ALUout));
+          .ALUout(ALUout),
+          .flagW(flagW));
 
     // pass/fail flag for expected output 
-    parameter TEST_TOTAL = 22;
+    parameter TEST_TOTAL = 24;
     reg [TEST_TOTAL-1:0] pass;
     reg E_Z, E_N, E_V;
     reg [7:0] E_ALUout;
@@ -43,6 +45,8 @@ module alu_tb;
             // 0 means dump everything under alu_tb and all hierarchy levels
             // 1 means dump only signals under alu_tb, but not signals inside instantiated modules
         $dumpvars(0, alu_tb);
+
+        flagW = 1;
 
         $display("## ADDITION TEST CASES ## \n");
 
@@ -691,6 +695,66 @@ module alu_tb;
         pass[21] = (E_Z == Z) & (E_N == N) & (E_V == V) & (E_ALUout == ALUout);
     
         if (pass[21])
+            $display("PASS\n");
+        else
+            $display("FAIL\n");
+
+
+        // OR with MSB result set
+
+        $display("OR with MSB result set\n");
+
+        // expected output
+        E_N = 1;
+        E_V = 0;
+        E_Z = 0;
+        E_ALUout = 8'b11111011; // 8'hFB
+
+        // input
+        Ain = 8'hB3; // 179 = 10110011
+        Bin = 8'h6A; // 106 = 01101010
+        ALUop = 3'b100; // OR
+        #10;
+
+        $display("Expected Output:");
+        $display("Ain = %b (unsigned %0d)\nBin = %b (unsigned %0d)\nALUout = %b (unsigned %0d)\nZ = %b\nN = %b\nV = %0b\n", Ain, Ain, Bin, Bin, E_ALUout, E_ALUout, E_Z, E_N, E_V);
+
+        $display("Actual Output:");
+        $display("Ain = %b (unsigned %0d)\nBin = %b (unsigned %0d)\nALUout = %b (unsigned %0d)\nZ = %b\nN = %b\nV = %0b\n", Ain, Ain, Bin, Bin, ALUout, ALUout, Z, N, V);
+
+        pass[22] = (E_Z == Z) & (E_N == N) & (E_V == V) & (E_ALUout == ALUout);
+    
+        if (pass[22])
+            $display("PASS\n");
+        else
+            $display("FAIL\n");
+
+
+        // XOR with MSB result set
+
+        $display("XOR with MSB result set\n");
+
+        // expected output
+        E_N = 1;
+        E_V = 0;
+        E_Z = 0;
+        E_ALUout = 8'b11011001; // 8'hD9
+
+        // input
+        Ain = 8'hB3; // 179 = 10110011
+        Bin = 8'h6A; // 106 = 01101010
+        ALUop = 3'b101; // XOR
+        #10;
+
+        $display("Expected Output:");
+        $display("Ain = %b (unsigned %0d)\nBin = %b (unsigned %0d)\nALUout = %b (unsigned %0d)\nZ = %b\nN = %b\nV = %0b\n", Ain, Ain, Bin, Bin, E_ALUout, E_ALUout, E_Z, E_N, E_V);
+
+        $display("Actual Output:");
+        $display("Ain = %b (unsigned %0d)\nBin = %b (unsigned %0d)\nALUout = %b (unsigned %0d)\nZ = %b\nN = %b\nV = %0b\n", Ain, Ain, Bin, Bin, ALUout, ALUout, Z, N, V);
+
+        pass[23] = (E_Z == Z) & (E_N == N) & (E_V == V) & (E_ALUout == ALUout);
+    
+        if (pass[23])
             $display("PASS\n");
         else
             $display("FAIL\n");

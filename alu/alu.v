@@ -1,7 +1,8 @@
-module alu(ALUop, Ain, Bin, shift2bits, Z, N, V, ALUout);
+module alu(ALUop, Ain, Bin, shift2bits, Z, N, V, ALUout, flagW);
     input [2:0] ALUop;
     input [7:0] Ain, Bin;
     input [1:0] shift2bits;
+    input flagW;
     output reg Z, N, V;
     output reg [7:0] ALUout;
 
@@ -20,17 +21,20 @@ module alu(ALUop, Ain, Bin, shift2bits, Z, N, V, ALUout);
         Z = 0;
         N = 0;
         V = 0;
+
         case(ALUop)
             ADD:
             begin
                 ALUout = Ain + Bin;
-                V = ((ALUout[7] != Ain[7]) & (Ain[7] == Bin[7]));
+                if (flagW)
+                    V = ((ALUout[7] != Ain[7]) & (Ain[7] == Bin[7]));
             end
 
             SUB:
             begin
                 ALUout = Ain - Bin;
-                V = ((ALUout[7] != Ain[7]) & (Ain[7] != Bin[7]));
+                if (flagW)
+                    V = ((ALUout[7] != Ain[7]) & (Ain[7] != Bin[7]));
             end
 
             SHIFT:
@@ -43,7 +47,7 @@ module alu(ALUop, Ain, Bin, shift2bits, Z, N, V, ALUout);
                     else ALUout = AinSigned >>> BinShift;
                 end
             end
-            
+
             AND:
                 ALUout = Ain & Bin;
             OR:
@@ -58,7 +62,12 @@ module alu(ALUop, Ain, Bin, shift2bits, Z, N, V, ALUout);
                 V = 0;
             end
         endcase
-        Z = (ALUout == 0);
-        N = ALUout[7];
+
+        if (flagW)
+            begin
+                Z = (ALUout == 0);
+                N = ALUout[7];
+            end
+        // IF HAVE TROUBLE LATER, ADD ELSE STATEMENT MAKING Z,N = 0
     end
 endmodule

@@ -2,7 +2,7 @@ module cpu_top(clk, reset);
     input clk, reset;
 
     // microarchitectural register signals
-    wire [7:0] PCold_D, PCold_Q;
+    wire [7:0] PCold_Q;
     wire [7:0] PC_D, PC_Q;
     wire [7:0] MDR_D, MDR_Q;
     wire [7:0] A_D, A_Q;
@@ -61,6 +61,6 @@ module cpu_top(clk, reset);
 
     two_one_mux_8bit BSelect(.sel(Bsel), .a(B_Q), .b(imm8), .out(selectedB));
 
-    alu ALU(.ALUop(ALUop), .Ain(A_Q), .Bin(selectedB), .shift2bits(rb), .Z(Z), .N(N), .V(V), .ALUout(ALUout_D));
+    alu ALU(.ALUop(ALUop), .Ain(A_Q), .Bin(selectedB), .shift2bits(rb), .Z(Z), .N(N), .V(V), .ALUout(ALUout_D), .flagW(flagW));
 
 endmodule

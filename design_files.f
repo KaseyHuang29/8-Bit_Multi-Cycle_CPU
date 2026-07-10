@@ -1,0 +1,9 @@
+cpu_top.v
+four_one_mux_8bit.v
+two_one_mux_8bit.v
+./alu/alu.v
+./regfile/reg_file.v
+./regfile/reg_n_bit.v
+./memory/instr_mem.v
+./memory/data_mem.v
+./control/control_fsm.v
