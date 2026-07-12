@@ -464,9 +464,7 @@ module cpu_top_tb;
             CPU.IMEM.ROM[1] = 16'h6a03; // ldi r0, 106
             CPU.IMEM.ROM[2] = 16'h0092; // mov r2, r1
             CPU.IMEM.ROM[3] = 16'h0089; // or r2, r0
-            //CPU.IMEM.ROM[3] = 16'h0088; // and r2, r0
-            CPU.IMEM.ROM[4] = 16'h0143; // ldi r1, 1
-           // CPU.IMEM.ROM[4] = 16'h000c; // jmp 0
+            CPU.IMEM.ROM[4] = 16'h000c; // jmp 0
 
             reset_CPU();
 
@@ -509,10 +507,7 @@ module cpu_top_tb;
 
             #1; 
 
-            display_cycles(40);
-
-            @ (posedge clk);
-            $display("pls help");
+            display_cycles(100);
 
             verify_reg(2'd0, 8'd106);
             verify_reg(2'd1, 8'd179);
@@ -544,13 +539,13 @@ module cpu_top_tb;
         reset_CPU();
         clear_ROM();
 
-        test_ldi_add_mov();
+        //test_ldi_add_mov();
 
-        // test_load_store_sub();
+        //test_load_store_sub();
 
-        // test_alu_logic();
+        test_alu_logic();
 
-        // test_OR();
+        //test_OR();
 
 
         $finish;

@@ -138,7 +138,7 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
                     OR:
                     begin
                         Bsel = 0;
-                        ALUop = 3'b100;
+                        ALUop = 3'b100; ////// 
                         flagW = 1;
                         ALUoutLd = 1;
                     end

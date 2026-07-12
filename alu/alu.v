@@ -16,26 +16,58 @@ module alu(ALUop, Ain, Bin, shift2bits, Z, N, V, ALUout, flagW);
 
     always @ (*) 
     begin
-        // give default values to avoid latches
+        /*
         ALUout = 0;
+        V = 0;
         Z = 0;
         N = 0;
-        V = 0;
 
         case(ALUop)
-            ADD:
+            ADD: ALUout = Ain + Bin;
+
+            SUB: ALUout = Ain - Bin;
+
+            SHIFT:
             begin
-                ALUout = Ain + Bin;
-                if (flagW)
-                    V = ((ALUout[7] != Ain[7]) & (Ain[7] == Bin[7]));
+                if (shift2bits[0])
+                    ALUout = Ain << BinShift;
+                else 
+                begin
+                    if (shift2bits[1]) ALUout = Ain >> BinShift;
+                    else ALUout = AinSigned >>> BinShift;
+                end
             end
 
-            SUB:
+            AND:
+                ALUout = Ain & Bin;
+
+            OR: ALUout = Ain | Bin;
+
+            XOR: 
+                ALUout = Ain ^ Bin;
+
+            NOT:
+                ALUout = ~Ain;
+            default: ALUout = 8'd0;
+        endcase
+
+        if (flagW)
             begin
-                ALUout = Ain - Bin;
-                if (flagW)
-                    V = ((ALUout[7] != Ain[7]) & (Ain[7] != Bin[7]));
+                Z = (ALUout == 0);
+                N = ALUout[7];
+                V = ((ALUout[7] != Ain[7]) & (Ain[7] == Bin[7]));
             end
+        */
+
+
+
+        // give default values to avoid latches
+        ALUout = 0;
+
+        case(ALUop)
+            ADD: ALUout = Ain + Bin;
+
+            SUB: ALUout = Ain - Bin;
 
             SHIFT:
             begin
@@ -59,15 +91,24 @@ module alu(ALUop, Ain, Bin, shift2bits, Z, N, V, ALUout, flagW);
             default:
             begin
                 ALUout = 0;
-                V = 0;
             end
         endcase
-
-        if (flagW)
-            begin
-                Z = (ALUout == 0);
-                N = ALUout[7];
-            end
-        // IF HAVE TROUBLE LATER, ADD ELSE STATEMENT MAKING Z,N = 0
     end
+        // IF HAVE TROUBLE LATER, ADD ELSE STATEMENT MAKING Z,N = 0
+    always @ (*)
+    begin
+            if (flagW)
+                begin
+                    Z = (ALUout == 0);
+                    N = ALUout[7];
+                    V = ((ALUout[7] != Ain[7]) & (Ain[7] == Bin[7]));
+                end
+            else 
+                begin
+                    Z = 0;
+                    N = 0;
+                    V = 0;
+                end
+    end
+
 endmodule
