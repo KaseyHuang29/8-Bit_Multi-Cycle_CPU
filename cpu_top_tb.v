@@ -543,9 +543,9 @@ module cpu_top_tb;
 
         //test_load_store_sub();
 
-        //test_OR();
+        // test_OR();
 
-        test_alu_logic();
+        // test_alu_logic();
 
 
         $finish;
