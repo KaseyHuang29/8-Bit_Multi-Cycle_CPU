@@ -520,6 +520,44 @@ module cpu_top_tb;
         end
     endtask
 
+    task test_alu_shift;
+        begin
+            reset_CPU();
+            clear_RAM();
+            clear_ROM();
+
+            CPU.IMEM.ROM[0]  = 16'h6603; // ldi r0, 102
+            CPU.IMEM.ROM[1]  = 16'h0227; // srli r0, 2
+            CPU.IMEM.ROM[2]  = 16'hffc3; // ldi r3, 255
+            CPU.IMEM.ROM[3]  = 16'h0031; // store r0, (r3)
+            CPU.IMEM.ROM[4]  = 16'h6643; // ldi r1, 102
+            CPU.IMEM.ROM[5]  = 16'h0557; // slli r1, 5
+            CPU.IMEM.ROM[6]  = 16'hffc5; // addi r3, -1
+            CPU.IMEM.ROM[7]  = 16'h0071; // store r1, (r3)
+            CPU.IMEM.ROM[8]  = 16'he683; // ldi r2, 230 / -26
+            CPU.IMEM.ROM[9]  = 16'h0787; // srai r2, 7
+            CPU.IMEM.ROM[10] = 16'hfec5; // addi r3, -2
+            CPU.IMEM.ROM[11] = 16'h00b1; // store r2, (r3)
+            CPU.IMEM.ROM[12] = 16'h000c; // jmp 0
+
+            $display("ldi r0, 102\nsrli r0, 2\nldi r3, 255\nstore r0, (r3)\nldi r1, 102\nslli r1, 5\naddi r3, -1\nstore r1, (r3)\nldi r2, 230\nsrai r2, 7\naddi r3, -2\nstore r2, (r3)\njmp 0\n");
+
+            #2;
+
+            display_cycles(70);
+
+            verify_reg(2'd0, 8'd25);
+            verify_reg(2'd1, 8'd192);
+            verify_reg(2'd2, 8'hff);
+            verify_reg(2'd3, 8'd252);
+
+            verify_dmem(8'd255, 8'd25);
+            verify_dmem(8'd254, 8'd192);
+            verify_dmem(8'd252, 8'hff);
+
+        end
+    endtask
+
     // INITIALIZE CLOCK
     initial
     begin
@@ -546,6 +584,8 @@ module cpu_top_tb;
         // test_OR();
 
         // test_alu_logic();
+
+        test_alu_shift();
 
 
         $finish;
