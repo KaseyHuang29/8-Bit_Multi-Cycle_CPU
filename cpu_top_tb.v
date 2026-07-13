@@ -456,7 +456,7 @@ module cpu_top_tb;
     task test_OR;
         begin
             
-            //reset_CPU();
+            reset_CPU();
             clear_ROM();
             clear_RAM();
 
@@ -558,6 +558,34 @@ module cpu_top_tb;
         end
     endtask
 
+    task test_bne_taken;
+        begin
+            reset_CPU();
+            clear_RAM();
+            clear_ROM();
+
+            CPU.IMEM.ROM[0] = 16'h0503; // ldi r0, 5
+            CPU.IMEM.ROM[1] = 16'h0343; // ldi r1, 3
+            CPU.IMEM.ROM[2] = 16'h031d; // bne r0, r1, 3
+            CPU.IMEM.ROM[3] = 16'h0083; // ldi r2, 0
+            CPU.IMEM.ROM[4] = 16'h020c; // jmp 2 
+            CPU.IMEM.ROM[5] = 16'hff83; // ldi r2, 255
+            CPU.IMEM.ROM[6] = 16'h000c; // jmp 0
+
+            $display("ldi r0, 5\nldi r1, 3\nbne r0, r1, 3\nldi r2, 0\njmp 2\nldi r2, 255\njmp 0\n");
+
+            #4;
+
+            display_cycles(20);
+
+            verify_reg(2'd0, 8'd5);
+            verify_reg(2'd1, 8'd3);
+            verify_reg(2'd2, 8'd255);
+        end
+    endtask
+
+
+
     // INITIALIZE CLOCK
     initial
     begin
@@ -574,18 +602,18 @@ module cpu_top_tb;
         $dumpfile("cpu_top_tb.vcd");
         $dumpvars(0, cpu_top_tb);
 
-        reset_CPU();
-        clear_ROM();
 
-        //test_ldi_add_mov();
+        // test_ldi_add_mov();
 
-        //test_load_store_sub();
+        // test_load_store_sub();
 
         // test_OR();
 
         // test_alu_logic();
 
-        test_alu_shift();
+        // test_alu_shift();
+
+        // test_bne_taken();
 
 
         $finish;
