@@ -138,7 +138,7 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
                     OR:
                     begin
                         Bsel = 0;
-                        ALUop = 3'b100; ////// 
+                        ALUop = 3'b100;
                         flagW = 1;
                         ALUoutLd = 1;
                     end
@@ -172,7 +172,8 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
                         Bsel = 0;
                         ALUop = 3'b001;
                         flagW = 1;
-                        // FIX THIS LOGIC WHEN IT COMES TO IT BC IDK, MAYBE DO THE CONDITION HERE ABOUT WHETHER SKIP CYCLE3
+                        if (!Z) nextCycle = cycle3;
+                        else nextCycle = cycle0;
                     end
 
                     BGT:
@@ -180,7 +181,8 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
                         Bsel = 0;
                         ALUop = 3'b001;
                         flagW = 1;
-                        // FIX THIS LOGIC WHEN IT COMES TO IT BC IDK, MAYBE DO THE CONDITION HERE ABOUT WHETER SKIP CYCLE3
+                        if (!Z && (N == V)) nextCycle = cycle3;
+                        else nextCycle = cycle0;
                     end
                     
                     default:
@@ -274,22 +276,17 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
 
                     BNE:
                     begin
-                        if (!Z)
-                        begin
-                            PCsel = 1;
-                            incrSel = 1;
-                            PCW = 1;
-                        end
+                        PCsel = 1;
+                        incrSel = 1;
+                        PCW = 1;
+                
                     end
 
                     BGT:
                     begin
-                        if (!Z && (N == V))
-                        begin
-                            PCsel = 1;
-                            incrSel = 1;
-                            PCW = 1;
-                        end
+                        PCsel = 1;
+                        incrSel = 1;
+                        PCW = 1;
                     end
                     
                     default:
