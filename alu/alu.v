@@ -101,7 +101,12 @@ module alu(ALUop, Ain, Bin, shift2bits, Z, N, V, ALUout, flagW);
                 begin
                     Z = (ALUout == 0);
                     N = ALUout[7];
-                    V = ((ALUout[7] != Ain[7]) & (Ain[7] == Bin[7]));
+                    if (ALUop == 3'b000)
+                        V = ((ALUout[7] != Ain[7]) && (Ain[7] == Bin[7]));
+                    else if (ALUop == 3'b001)
+                        V = ((ALUout[7] != Ain[7]) && (Ain[7] != Bin[7]));
+                    else
+                        V = 0;
                 end
             else 
                 begin

@@ -567,12 +567,12 @@ module cpu_top_tb;
             CPU.IMEM.ROM[0] = 16'h0503; // ldi r0, 5
             CPU.IMEM.ROM[1] = 16'h0343; // ldi r1, 3
             CPU.IMEM.ROM[2] = 16'h031d; // bne r0, r1, 3
-            CPU.IMEM.ROM[3] = 16'h0083; // ldi r2, 0
+            CPU.IMEM.ROM[3] = 16'h0183; // ldi r2, 1
             CPU.IMEM.ROM[4] = 16'h020c; // jmp 2 
             CPU.IMEM.ROM[5] = 16'hff83; // ldi r2, 255
             CPU.IMEM.ROM[6] = 16'h000c; // jmp 0
 
-            $display("ldi r0, 5\nldi r1, 3\nbne r0, r1, 3\nldi r2, 0\njmp 2\nldi r2, 255\njmp 0\n");
+            $display("ldi r0, 5\nldi r1, 3\nbne r0, r1, 3\nldi r2, 1\njmp 2\nldi r2, 255\njmp 0\n");
 
             #4;
 
@@ -593,12 +593,12 @@ module cpu_top_tb;
             CPU.IMEM.ROM[0] = 16'h9f03; // ldi r0, 159
             CPU.IMEM.ROM[1] = 16'h9f43; // ldi r1, 159
             CPU.IMEM.ROM[2] = 16'h031d; // bne r0, r1, 3
-            CPU.IMEM.ROM[3] = 16'h0083; // ldi r2, 0
+            CPU.IMEM.ROM[3] = 16'h0183; // ldi r2, 1
             CPU.IMEM.ROM[4] = 16'h020c; // jmp 2 
             CPU.IMEM.ROM[5] = 16'hff83; // ldi r2, 255
             CPU.IMEM.ROM[6] = 16'h000c; // jmp 0
 
-            $display("ldi r0, 5\nldi r1, 3\nbne r0, r1, 3\nldi r2, 0\njmp 2\nldi r2, 255\njmp 0\n");
+            $display("ldi r0, 5\nldi r1, 3\nbne r0, r1, 3\nldi r2, 1\njmp 2\nldi r2, 255\njmp 0\n");
 
             #4;
 
@@ -606,7 +606,7 @@ module cpu_top_tb;
 
             verify_reg(2'd0, 8'd159);
             verify_reg(2'd1, 8'd159);
-            verify_reg(2'd2, 8'd0);
+            verify_reg(2'd2, 8'd1);
         end
     endtask
 
@@ -619,12 +619,12 @@ module cpu_top_tb;
             CPU.IMEM.ROM[0] = 16'h7f03; // ldi r0, 127
             CPU.IMEM.ROM[1] = 16'h6f43; // ldi r1, 111
             CPU.IMEM.ROM[2] = 16'h031e; // bgt r0, r1, 3
-            CPU.IMEM.ROM[3] = 16'h0083; // ldi r2, 0
+            CPU.IMEM.ROM[3] = 16'h0183; // ldi r2, 1
             CPU.IMEM.ROM[4] = 16'h020c; // jmp 2 
             CPU.IMEM.ROM[5] = 16'hff83; // ldi r2, 255
             CPU.IMEM.ROM[6] = 16'h000c; // jmp 0
 
-            $display("ldi r0, 127\nldi r1, 111\nbgt r0, r1, 3\nldi r2, 0\njmp 2\nldi r2, 255\njmp 0\n");
+            $display("ldi r0, 127\nldi r1, 111\nbgt r0, r1, 3\nldi r2, 1\njmp 2\nldi r2, 255\njmp 0\n");
 
             #4;
 
@@ -637,6 +637,32 @@ module cpu_top_tb;
         end
     endtask
 
+    task test_bgt_pospos_untaken;
+        begin
+            reset_CPU();
+            clear_ROM();
+            clear_RAM();
+
+            CPU.IMEM.ROM[0] = 16'h1f03; // ldi r0, 31
+            CPU.IMEM.ROM[1] = 16'h1e43; // ldi r1, 30
+            CPU.IMEM.ROM[2] = 16'h034e; // bgt r1, r0, 3
+            CPU.IMEM.ROM[3] = 16'h0183; // ldi r2, 1
+            CPU.IMEM.ROM[4] = 16'h020c; // jmp 2 
+            CPU.IMEM.ROM[5] = 16'hff83; // ldi r2, 255
+            CPU.IMEM.ROM[6] = 16'h000c; // jmp 0
+
+            $display("ldi r0, 31\nldi r1, 30\nbgt r1, r0, 3\nldi r2, 1\njmp 2\nldi r2, 255\njmp 0\n");
+
+            #4;
+
+            display_cycles(20);
+
+            verify_reg(2'd0, 8'd31);
+            verify_reg(2'd1, 8'd30);
+            verify_reg(2'd2, 8'd1);
+
+        end
+    endtask
 
 
     // INITIALIZE CLOCK
@@ -658,19 +684,21 @@ module cpu_top_tb;
 
         // test_ldi_add_mov();
 
-        // test_load_store_sub();
+        //test_load_store_sub();
 
-        // test_OR();
+        //test_OR();
 
-        // test_alu_logic();
+        //test_alu_logic();
 
-        // test_alu_shift();
+        //test_alu_shift();
 
-        // test_bne_taken();
+        //test_bne_taken();
 
-        // test_bne_untaken();
+        //test_bne_untaken();
         
-        test_bgt_pospos_taken();
+        //test_bgt_pospos_taken();
+
+        test_bgt_pospos_untaken();
 
 
         $finish;
