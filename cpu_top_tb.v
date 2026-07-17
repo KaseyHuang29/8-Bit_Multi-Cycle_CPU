@@ -664,7 +664,35 @@ module cpu_top_tb;
         end
     endtask
 
+    task test_bgt_posneg_taken;
+        begin
+            reset_CPU();
+            clear_ROM();
+            clear_RAM();
 
+            CPU.IMEM.ROM[0] = 16'h1503; // ldi r0, 21
+            CPU.IMEM.ROM[1] = 16'hf943; // ldi r1, -7
+            CPU.IMEM.ROM[2] = 16'h031e; // bgt r0, r1, 3
+            CPU.IMEM.ROM[3] = 16'h0183; // ldi r2, 1
+            CPU.IMEM.ROM[4] = 16'h020c; // jmp 2 
+            CPU.IMEM.ROM[5] = 16'hff83; // ldi r2, 255
+            CPU.IMEM.ROM[6] = 16'h000c; // jmp 0
+
+            $display("ldi r0, 21\nldi r1, -7\nbgt r0, r1, 3\nldi r2, 1\njmp 2\nldi r2, 255\njmp 0\n");
+
+            #4;
+
+            display_cycles(20);
+
+            verify_reg(2'd0, 8'd21);
+            verify_reg(2'd1, 8'd249);
+            verify_reg(2'd2, 8'd255);
+
+        end
+    endtask
+
+    //task test_bgt_posneg_untaken;
+    //endtask
     // INITIALIZE CLOCK
     initial
     begin
@@ -698,7 +726,9 @@ module cpu_top_tb;
         
         //test_bgt_pospos_taken();
 
-        test_bgt_pospos_untaken();
+        //test_bgt_pospos_untaken();
+
+        test_bgt_posneg_taken();
 
 
         $finish;
