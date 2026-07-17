@@ -743,6 +743,58 @@ module cpu_top_tb;
         end
     endtask
 
+    task test_bgt_negneg_untaken;
+        begin
+            reset_CPU();
+            clear_ROM();
+            clear_RAM();
+
+            CPU.IMEM.ROM[0] = 16'h8103; // ldi r0, -127
+            CPU.IMEM.ROM[1] = 16'hfc43; // ldi r1, -4
+            CPU.IMEM.ROM[2] = 16'h0341; // bgt r0, r1, 3
+            CPU.IMEM.ROM[3] = 16'h0183; // ldi r2, 1
+            CPU.IMEM.ROM[4] = 16'h020c; // jmp 2 
+            CPU.IMEM.ROM[5] = 16'hff83; // ldi r2, 255
+            CPU.IMEM.ROM[6] = 16'h000c; // jmp 0
+
+            $display("ldi r0, -127\nldi r1, -4\nbgt r0, r1, 3\nldi r2, 1\njmp 2\nldi r2, 255\njmp 0\n");
+
+            #4;
+
+            display_cycles(20);
+
+            verify_reg(2'd0, 8'd129);
+            verify_reg(2'd1, 8'd252);
+            verify_reg(2'd2, 8'd1);
+        end
+    endtask
+
+    task test_bgt_equal_untaken;
+        begin
+            reset_CPU();
+            clear_ROM();
+            clear_RAM();
+
+            CPU.IMEM.ROM[0] = 16'h0c03; // ldi r0, 12
+            CPU.IMEM.ROM[1] = 16'h0c43; // ldi r1, 12
+            CPU.IMEM.ROM[2] = 16'h0341; // bgt r0, r1, 3
+            CPU.IMEM.ROM[3] = 16'h0183; // ldi r2, 1
+            CPU.IMEM.ROM[4] = 16'h020c; // jmp 2 
+            CPU.IMEM.ROM[5] = 16'hff83; // ldi r2, 255
+            CPU.IMEM.ROM[6] = 16'h000c; // jmp 0
+
+            $display("ldi r0, -127\nldi r1, -4\nbgt r0, r1, 3\nldi r2, 1\njmp 2\nldi r2, 255\njmp 0\n");
+
+            #4;
+
+            display_cycles(20);
+
+            verify_reg(2'd0, 8'd12);
+            verify_reg(2'd1, 8'd12);
+            verify_reg(2'd2, 8'd1);
+        end
+    endtask
+
     // INITIALIZE CLOCK
     initial
     begin
@@ -784,11 +836,13 @@ module cpu_top_tb;
 
         //test_bgt_negneg_taken();
 
+        //test_bgt_negneg_untaken();
+
+        //test_bgt_equal_untaken
+
         $finish;
 
     end
-
-
 
 
 endmodule
