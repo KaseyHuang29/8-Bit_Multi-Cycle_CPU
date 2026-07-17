@@ -16,51 +16,6 @@ module alu(ALUop, Ain, Bin, shift2bits, Z, N, V, ALUout, flagW);
 
     always @ (*) 
     begin
-        /*
-        ALUout = 0;
-        V = 0;
-        Z = 0;
-        N = 0;
-
-        case(ALUop)
-            ADD: ALUout = Ain + Bin;
-
-            SUB: ALUout = Ain - Bin;
-
-            SHIFT:
-            begin
-                if (shift2bits[0])
-                    ALUout = Ain << BinShift;
-                else 
-                begin
-                    if (shift2bits[1]) ALUout = Ain >> BinShift;
-                    else ALUout = AinSigned >>> BinShift;
-                end
-            end
-
-            AND:
-                ALUout = Ain & Bin;
-
-            OR: ALUout = Ain | Bin;
-
-            XOR: 
-                ALUout = Ain ^ Bin;
-
-            NOT:
-                ALUout = ~Ain;
-            default: ALUout = 8'd0;
-        endcase
-
-        if (flagW)
-            begin
-                Z = (ALUout == 0);
-                N = ALUout[7];
-                V = ((ALUout[7] != Ain[7]) & (Ain[7] == Bin[7]));
-            end
-        */
-
-
-
         // give default values to avoid latches
         ALUout = 0;
 
