@@ -795,6 +795,56 @@ module cpu_top_tb;
         end
     endtask
 
+    task fibbonacci_signed;
+        begin
+            reset_CPU();
+            clear_RAM();
+            clear_ROM();
+
+            CPU.IMEM.ROM[0]  = 16'h0003; // ldi r0, 0
+            CPU.IMEM.ROM[1]  = 16'h0143; // ldi r1, 1
+            CPU.IMEM.ROM[2]  = 16'h00c3; // ldi r3, 0
+
+            CPU.IMEM.ROM[3]  = 16'h0031; // store r0, (r3)   RAM[0] = 0
+            CPU.IMEM.ROM[4]  = 16'h01c5; // addi r3, 1
+            CPU.IMEM.ROM[5]  = 16'h0071; // store r1, (r3)   RAM[1] = 1
+            CPU.IMEM.ROM[6]  = 16'h01c5; // addi r3, 1
+
+            CPU.IMEM.ROM[7]  = 16'h0082; // mov r2, r0
+            CPU.IMEM.ROM[8]  = 16'h0094; // add r2, r1       r2 = r0 + r1
+            CPU.IMEM.ROM[9] = 16'h062e; // bgt r0, r2, 6    if 0 > r2, stop
+
+            CPU.IMEM.ROM[10] = 16'h00b1; // store r2, (r3)
+            CPU.IMEM.ROM[11] = 16'h01c5; // addi r3, 1
+            CPU.IMEM.ROM[12] = 16'h0012; // mov r0, r1
+            CPU.IMEM.ROM[13] = 16'h0062; // mov r1, r2
+            CPU.IMEM.ROM[14] = 16'hf90c; // jmp -7           jump back to address 7
+
+            CPU.IMEM.ROM[15] = 16'h000c; // jmp 0            halt/self-loop
+
+            $display("ldi r0, 0\nldi r1, 1\nldi r3, 0\nstore r0, (r3)\naddi r3, 1\nstore r1, (r3)\naddi r3, 1\nmov r2, r0\nadd r2, r1\nbgt r0, r2, 6\nstore r2, (r3)\naddi r3, 1\nmov r0, r1\nmov r1, r2\njmp -7\njmp 0\n");
+
+            repeat(300) @(posedge clk);
+
+            verify_dmem(8'd0,  8'd0);
+            verify_dmem(8'd1,  8'd1);
+            verify_dmem(8'd2,  8'd1);
+            verify_dmem(8'd3,  8'd2);
+            verify_dmem(8'd4,  8'd3);
+            verify_dmem(8'd5,  8'd5);
+            verify_dmem(8'd6,  8'd8);
+            verify_dmem(8'd7,  8'd13);
+            verify_dmem(8'd8,  8'd21);
+            verify_dmem(8'd9,  8'd34);
+            verify_dmem(8'd10, 8'd55);
+            verify_dmem(8'd11, 8'd89);
+
+            // pointer should now point to next empty address
+            verify_reg(2'd3, 8'd12);
+        end
+
+    endtask
+
     // INITIALIZE CLOCK
     initial
     begin
@@ -838,7 +888,9 @@ module cpu_top_tb;
 
         //test_bgt_negneg_untaken();
 
-        //test_bgt_equal_untaken
+        //test_bgt_equal_untaken();
+
+        fibbonacci_signed();
 
         $finish;
 
