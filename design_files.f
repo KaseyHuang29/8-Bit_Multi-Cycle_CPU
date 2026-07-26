@@ -1,4 +1,5 @@
 cpu_top.v
+cpu_core.v
 four_one_mux_8bit.v
 two_one_mux_8bit.v
 ./alu/alu.v

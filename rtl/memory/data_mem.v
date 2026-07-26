@@ -17,7 +17,7 @@ module data_mem(clk, addr, dataIn, dataOut, memRD, memW);
     always @ (posedge clk)
     begin
         if (memW)
-            RAM[addr] = dataIn;
+            RAM[addr] <= dataIn;
     end
 
 endmodule

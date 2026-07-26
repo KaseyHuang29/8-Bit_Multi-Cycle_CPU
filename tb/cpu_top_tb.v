@@ -44,34 +44,34 @@ module cpu_top_tb;
     task check_IR;
         reg [15:0] IRdata;
         begin
-            IRdata = CPU.IR.Q;
+            IRdata = CPU.CORE.IR.Q;
             $display("IR: %h", IRdata);
-            $display("opcode: %b\n", CPU.FSM.opcode);
+            $display("opcode: %b\n", CPU.CORE.FSM.opcode);
         end
     endtask
 
     task check_PCold;
-        $display("PCold holds 0x%h\n", CPU.PCold.Q);
+        $display("PCold holds 0x%h\n", CPU.CORE.PCold.Q);
     endtask
 
     task check_PC;
-        $display("PC holds 0x%h\n", CPU.PC.Q);
+        $display("PC holds 0x%h\n", CPU.CORE.PC.Q);
     endtask
 
     task check_MDR;
-        $display("MDR holds 0x%h\n", CPU.MDR.Q);
+        $display("MDR holds 0x%h\n", CPU.CORE.MDR.Q);
     endtask
 
     task check_A;
-        $display("A holds 0x%h\n", CPU.A.Q);
+        $display("A holds 0x%h\n", CPU.CORE.A.Q);
     endtask
 
     task check_B;
-        $display("B holds 0x%h\n", CPU.B.Q);
+        $display("B holds 0x%h\n", CPU.CORE.B.Q);
     endtask
 
     task check_ALUout;
-        $display("ALUout holds 0x%h\n", CPU.ALUout.Q);
+        $display("ALUout holds 0x%h\n", CPU.CORE.ALUout.Q);
     endtask
 
     task display_cycles;
@@ -81,7 +81,7 @@ module cpu_top_tb;
                 begin
                     @ (posedge clk);
                     $display("k = %0d", k);
-                    $display("Cycle = %0d   PC = %0d   IR = %h   Next Cycle = %d", CPU.FSM.cycle, CPU.PC.Q, CPU.IR.Q, CPU.FSM.nextCycle);
+                    $display("Cycle = %0d   PC = %0d   IR = %h   Next Cycle = %d", CPU.CORE.FSM.cycle, CPU.CORE.PC.Q, CPU.CORE.IR.Q, CPU.CORE.FSM.nextCycle);
                     check_reg(2'd0);
                     check_reg(2'd1);
                     check_reg(2'd2);
@@ -102,19 +102,19 @@ module cpu_top_tb;
         begin
             case(reg_select)
                 2'd0: begin
-                    regData = CPU.RF.R0.Q;
+                    regData = CPU.CORE.RF.R0.Q;
                     $display("r0 holds %h\n", regData);
                 end
                 2'd1: begin
-                    regData = CPU.RF.R1.Q;
+                    regData = CPU.CORE.RF.R1.Q;
                     $display("r1 holds %h\n", regData);
                 end
                 2'd2: begin
-                    regData = CPU.RF.R2.Q;
+                    regData = CPU.CORE.RF.R2.Q;
                     $display("r2 holds %h\n", regData);
                 end
                 2'd3: begin
-                    regData = CPU.RF.R3.Q;
+                    regData = CPU.CORE.RF.R3.Q;
                     $display("r3 holds %h\n", regData);
                 end
                 default: $display("invalid register.\n");
@@ -124,21 +124,21 @@ module cpu_top_tb;
 
     // CHECK CURRENT CYCLE
     task check_cycle;
-        $display("## CYCLE %d ##\n", CPU.FSM.cycle);
+        $display("## CYCLE %d ##\n", CPU.CORE.FSM.cycle);
     endtask
 
     // CHECK NEXT CYCLE
     task check_next_cycle;
-        $display("(NEXT CYCLE %d)\n", CPU.FSM.nextCycle);
+        $display("(NEXT CYCLE %d)\n", CPU.CORE.FSM.nextCycle);
     endtask
 
     // CHECK CYCLE 0 OR 1
     task check_cycle_0_1;
         begin
-            if (CPU.FSM.cycle == 2'd0)
-                $display("memRI = %0b\nIRLd = %0b\nPColdW = %0b\n", CPU.FSM.memRI, CPU.FSM.IRLd, CPU.FSM.PColdW);
-            else if (CPU.FSM.cycle == 2'd1)
-                $display("RegLd = %0b\nPCsel = %0b\nincrSel = %0b\nPCW = %0b\n", CPU.FSM.RegLd, CPU.FSM.PCsel, CPU.FSM.incrSel, CPU.FSM.PCW);
+            if (CPU.CORE.FSM.cycle == 2'd0)
+                $display("memRI = %0b\nIRLd = %0b\nPColdW = %0b\n", CPU.CORE.FSM.memRI, CPU.CORE.FSM.IRLd, CPU.CORE.FSM.PColdW);
+            else if (CPU.CORE.FSM.cycle == 2'd1)
+                $display("RegLd = %0b\nPCsel = %0b\nincrSel = %0b\nPCW = %0b\n", CPU.CORE.FSM.RegLd, CPU.CORE.FSM.PCsel, CPU.CORE.FSM.incrSel, CPU.CORE.FSM.PCW);
         end
     endtask
 
@@ -174,19 +174,19 @@ module cpu_top_tb;
         begin
             case(reg_select)
                 2'd0: begin
-                    regData = CPU.RF.R0.Q;
+                    regData = CPU.CORE.RF.R0.Q;
                     pass = (expected_data == regData);
                 end
                 2'd1: begin
-                    regData = CPU.RF.R1.Q;
+                    regData = CPU.CORE.RF.R1.Q;
                     pass = (expected_data == regData);
                 end
                 2'd2: begin
-                    regData = CPU.RF.R2.Q;
+                    regData = CPU.CORE.RF.R2.Q;
                     pass = (expected_data == regData);
                 end
                 2'd3: begin
-                    regData = CPU.RF.R3.Q;
+                    regData = CPU.CORE.RF.R3.Q;
                     pass = (expected_data == regData);
                 end
                 default: $display("invalid register.\n");
@@ -861,7 +861,6 @@ module cpu_top_tb;
         end
     endtask
 
-
     task fibbonacci_signed;
         begin
             reset_CPU();
@@ -910,6 +909,8 @@ module cpu_top_tb;
         end
     endtask
 
+    
+
     // INITIALIZE CLOCK
     initial
     begin
@@ -927,7 +928,7 @@ module cpu_top_tb;
         $dumpvars(0, cpu_top_tb);
 
 
-        // test_ldi_add_mov();
+        //test_ldi_add_mov();
 
         //test_load_store_sub();
 
@@ -955,13 +956,13 @@ module cpu_top_tb;
 
         //test_bgt_equal_untaken();
 
-        //fibbonacci_signed();
-
         //edge_case_modulo();
 
         //edge_case_overflow();
 
-        edge_case_reg_readwrite();
+        //edge_case_reg_readwrite();
+
+        fibbonacci_signed();
 
         $finish;
 

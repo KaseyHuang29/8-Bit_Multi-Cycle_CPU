@@ -25,7 +25,6 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
         RegLd = 0;
         flagW = 0;
         ALUoutLd = 0;
-        PColdW = 0;
         PCsel = 0;
         incrSel = 0;
         Bsel = 0;
