@@ -5,12 +5,14 @@ module cpu_top_tb;
 
     cpu_top CPU(.clk(clk), .reset(reset));
 
-    //wire [15:0] IRdataCheck;
-    //wire [7:0] RegDataCheck;
-
     integer i;
     integer j;
     integer k;
+    integer l;
+
+    parameter TOTAL_TESTS = 18;
+    reg [TOTAL_TESTS-1:0] tests_pass;
+
 
     ////// HELPER TASKS //////
 
@@ -122,17 +124,14 @@ module cpu_top_tb;
         end
     endtask
 
-    // CHECK CURRENT CYCLE
     task check_cycle;
         $display("## CYCLE %d ##\n", CPU.CORE.FSM.cycle);
     endtask
 
-    // CHECK NEXT CYCLE
     task check_next_cycle;
         $display("(NEXT CYCLE %d)\n", CPU.CORE.FSM.nextCycle);
     endtask
 
-    // CHECK CYCLE 0 OR 1
     task check_cycle_0_1;
         begin
             if (CPU.CORE.FSM.cycle == 2'd0)
@@ -142,7 +141,6 @@ module cpu_top_tb;
         end
     endtask
 
-    // CHECK DMEM CONTENTS
     task check_dmem;
         input [7:0] address;
         reg [7:0] data;
@@ -155,19 +153,17 @@ module cpu_top_tb;
 
     task check_imem;
         input [7:0] address;
-        reg [7:0] data;
+        reg [15:0] data;
 
         begin
             data = CPU.IMEM.ROM[address];
-            $display("RAM @ 0x%h holds %b\n", address, data);
+            $display("ROM @ 0x%h holds %b\n", address, data);
         end
     endtask
 
-    task verify_reg;
-        // r0, r1, r2, r3, PCold, PC, MDR, A, B, ALUout
+    task disp_verify_reg;
         input [1:0] reg_select;
         input [7:0] expected_data;
-        //output [7:0] regData;
         reg [7:0] regData;
         reg pass;
 
@@ -202,7 +198,7 @@ module cpu_top_tb;
         end
     endtask
 
-    task verify_dmem;
+    task disp_verify_dmem;
         input [7:0] address;
         input [7:0] expected_data;
 
@@ -223,6 +219,34 @@ module cpu_top_tb;
         end
     endtask
 
+    function verify_reg;
+        input [1:0] reg_select;
+        input [7:0] expected_data;
+        reg [7:0] reg_data;
+
+        begin
+            case(reg_select)
+                2'd0: reg_data = CPU.CORE.RF.R0.Q;
+                2'd1: reg_data = CPU.CORE.RF.R1.Q;
+                2'd2: reg_data = CPU.CORE.RF.R2.Q;
+                2'd3: reg_data = CPU.CORE.RF.R3.Q;
+            endcase
+
+            verify_reg = (reg_data == expected_data);
+        end
+    endfunction
+
+    function verify_dmem;
+        input [7:0] address;
+        input [7:0] expected_data;
+        reg [7:0] mem_data;
+
+        begin
+            mem_data = CPU.DMEM.RAM[address];
+            verify_dmem = (mem_data == expected_data);
+        end
+    endfunction
+
     ///// TEST CASES /////
 
     task test_ldi_add_mov;
@@ -241,15 +265,18 @@ module cpu_top_tb;
 
             $display("ldi r0, 5\nldi r1, 3\nadd r0, r1\nmov r2, r0\njmp 0\n");
 
-            repeat(31) @ (posedge clk);
+            repeat(30) @ (posedge clk);
 
-            //check_reg(2'd0); // r0
-            //check_reg(2'd1); // r1
-            //check_reg(2'd2); // r2
+            tests_pass[0] = (verify_reg(2'd0, 8'd8) && 
+                             verify_reg(2'd1, 8'd3) && 
+                             verify_reg(2'd2, 8'd8));
 
-            verify_reg(2'd0, 8'd8);
-            verify_reg(2'd1, 8'd3);
-            verify_reg(2'd2, 8'd8);
+            /*
+            display_cycles(30); 
+
+            disp_verify_reg(2'd0, 8'd8);
+            disp_verify_reg(2'd1, 8'd3);
+            disp_verify_reg(2'd2, 8'd8);
 
             // check if on last cycle
             $display("Checking if on last cycle:");
@@ -263,92 +290,18 @@ module cpu_top_tb;
             check_cycle();
             check_PC(); // PC
             check_PCold(); // PCold
-
-            // ORIGINAL DEBUG - FIXED Z IN REG (MISSING OUTPUT SIGNAL IN DATA MUX)
-            //#1;
-            // CPU.IMEM.ROM[0] = 16'h0503; // ldi r0, 5
-        
-            // CPU.IMEM.ROM[1] = 16'h0473; // ldi r1, 4
-    
-            // CPU.IMEM.ROM[2] = 16'h0014; // add r0, r1
-
-            // CPU.IMEM.ROM[3] = 16'h0082; // mov r2, r0
-
-            // CPU.IMEM.ROM[4] = 16'h000c; // jmp 0
-
-            // //repeat(50) @ (posedge clk);
-            // //@ (posedge clk)
-            // #1;
-            // $display("## CYCLE %d ##\n", CPU.FSM.cycle);
-            // $display("memRI = %0b\nIRLd = %0b\nPColdW = %0b\n", CPU.FSM.memRI, CPU.FSM.IRLd, CPU.FSM.PColdW);
-            // check_IR();
-            // $display("## NEXT CYCLE %d ##\n", CPU.FSM.nextCycle);
-            // check_reg(10'd32);
-
-            // @ (posedge clk)
-            // #1;
-            // $display("## CYCLE %d ##\n", CPU.FSM.cycle);
-            // $display("RegLd = %0b\nPCsel = %0b\nincrSel = %0b\nPCW = %0b\n", CPU.FSM.RegLd, CPU.FSM.PCsel, CPU.FSM.incrSel, CPU.FSM.PCW);
-            // check_IR();
-            // $display("## NEXT CYCLE %d ##\n", CPU.FSM.nextCycle);
-            // check_reg(10'd32);
-
-            // @ (posedge clk)
-            // #1;
-            // $display("## CYCLE %d ##\n", CPU.FSM.cycle);
-            // $display("DataSel = %b\nRFW = %b\n", CPU.FSM.dataSel, CPU.FSM.RFW);
-            // check_IR();
-            // //check_reg(10'd1);
-            // $display("regW: %d", CPU.RF.rw);
-            // $display("dataIn: %h", CPU.RF.dataIn);
-            // //$display("");
-            // $display("## NEXT CYCLE %d ##\n", CPU.FSM.nextCycle);
-
-            // @ (posedge clk)
-            // #1;
-            // $display("## CYCLE %d ##\n", CPU.FSM.cycle);
-            // $display("memRI = %0b\nIRLd = %0b\nPColdW = %0b\n", CPU.FSM.memRI, CPU.FSM.IRLd, CPU.FSM.PColdW);
-            // check_reg(10'd1);
-            // $display("## NEXT CYCLE %d ##\n", CPU.FSM.nextCycle);
-
-            // @ (posedge clk)
-            // #1;
-            // $display("## CYCLE %d ##\n", CPU.FSM.cycle);
-            // $display("RegLd = %0b\nPCsel = %0b\nincrSel = %0b\nPCW = %0b\n", CPU.FSM.RegLd, CPU.FSM.PCsel, CPU.FSM.incrSel, CPU.FSM.PCW);
-            // check_IR();
-            // $display("## NEXT CYCLE %d ##\n", CPU.FSM.nextCycle);
-            // check_reg(10'd16);
-
-            // repeat(20) @ (posedge clk);
-
-            // $display("## CYCLE %d ##\n", CPU.FSM.cycle);
-            // $display("memRI = %0b\nIRLd = %0b\nPColdW = %0b\n", CPU.FSM.memRI, CPU.FSM.IRLd, CPU.FSM.PColdW);
-            // check_IR();
-            // $display("## NEXT CYCLE %d ##\n", CPU.FSM.nextCycle);
-
-
-            // check_reg(10'd1);
-            // check_reg(10'd2);
-            // check_reg(10'd4);
-
-            // check_reg(10'd16);
-            // $display("PColdW = %d", CPU.FSM.PColdW);
-            // check_reg(10'd32);
-            // $display("PCW = %d", CPU.FSM.PCW);
+            */
         end
     endtask
 
     task test_load_store_sub;
+
         begin
             $display("### CHECK LOAD, STORE, SUB ###\n");
 
             reset_CPU();
             clear_ROM();
             clear_RAM();
-
-            //check_dmem(8'd7);
-            //check_dmem(8'd9);
-            //check_dmem(8'd16);
 
             CPU.IMEM.ROM[0] = 16'h0903; // ldi r0, 9
             CPU.IMEM.ROM[1] = 16'hff42; // mov r1, r0
@@ -369,91 +322,32 @@ module cpu_top_tb;
 
             repeat(50) @ (posedge clk);
 
-            verify_reg(2'd0, 8'd16);
-            verify_reg(2'd1, 8'd9);
-            verify_reg(2'd2, 8'd7);
-            verify_reg(2'd3, 8'd9);
+            tests_pass[1] = (verify_reg(2'd0, 8'd16) &&
+                             verify_reg(2'd1, 8'd9) &&
+                             verify_reg(2'd2, 8'd7) &&
+                             verify_reg(2'd3, 8'd9) && 
+                             verify_dmem(8'd7, 8'd7) &&
+                             verify_dmem(8'd9, 8'd16) &&
+                             verify_dmem(8'd16, 8'd9));
 
-            // check_dmem(8'd7);
-            // check_dmem(8'd9);
-            // check_dmem(8'd16);
+            /*
+            display_cycles(50);
 
-            verify_dmem(8'd7, 8'd7);
-            verify_dmem(8'd9, 8'd16);
-            verify_dmem(8'd16, 8'd9);
+            disp_verify_reg(2'd0, 8'd16);
+            disp_verify_reg(2'd1, 8'd9);
+            disp_verify_reg(2'd2, 8'd7);
+            disp_verify_reg(2'd3, 8'd9);
 
-            /* 
-            // TEDIOUS DEBUGGING
-            // DEBUG RAM HOLDS 0?
-            // repeat(6) @ (posedge clk);
-
-
-            repeat(20) @ (posedge clk);
-
-            check_cycle();
-            check_IR();
-            check_reg(2'd0);
-            check_reg(2'd1);
-            check_cycle_0_1();
-            check_next_cycle();
-
-            @ (posedge clk);
-            check_cycle();
-            check_cycle_0_1();
-            check_IR();
-            check_reg(2'd0);
-            check_reg(2'd1);
-
-            @ (posedge clk);
-            check_cycle();
-            check_cycle_0_1();
-            check_IR();
-            check_next_cycle();
-
-            @ (posedge clk);
-            check_cycle();
-            check_cycle_0_1();
-            check_IR();
-            check_next_cycle();
-            check_MDR();
-
-            @ (posedge clk);
-            check_cycle();
-            $display("did we get here");
-
-            @ (posedge clk);
-            check_cycle();
-            check_IR();
-            check_cycle_0_1();
-
-            @ (posedge clk);
-            check_cycle();
-            $display("memRD = %b\nMDRLd = %b", CPU.FSM.memRD, CPU.FSM.MDRLd);
-            check_MDR();
-            check_next_cycle();
-
-            @ (posedge clk);
-            check_cycle();
-            $display("DataSel = %b\nRFW = %b", CPU.FSM.dataSel, CPU.FSM.RFW);
-            check_MDR();
-            check_next_cycle();
-
-            #1;
-
-            // r0, r1, r2, r3, PCold, PC, MDR, A, B, ALUout
-
-            
-            repeat(20) @ (posedge clk);
-            check_reg(2'd0);
-            check_reg(2'd1);
-            check_reg(2'd2);
-            check_reg(2'd3);
+            disp_verify_dmem(8'd7, 8'd7);
+            disp_verify_dmem(8'd9, 8'd16);
+            disp_verify_dmem(8'd16, 8'd9);   
             */
             
         end
     endtask
 
     task test_OR;
+
         begin
             
             reset_CPU();
@@ -472,13 +366,19 @@ module cpu_top_tb;
 
             #1;
 
-            display_cycles(20);
+            repeat(20) @ (posedge clk);
 
-            verify_reg(2'd2, 8'hfb);
+            tests_pass[2] = verify_reg(2'd2, 8'hfb);
+
+            /*
+            display_cycles(20);
+            disp_verify_reg(2'd2, 8'hfb);
+            */
         end
     endtask
 
     task test_alu_logic;
+
         begin
             reset_CPU();
             clear_RAM();
@@ -507,20 +407,33 @@ module cpu_top_tb;
 
             #1; 
 
+            repeat(100) @ (posedge clk);
+
+            tests_pass[3] = (verify_reg(2'd0, 8'd106) &&
+                             verify_reg(2'd1, 8'd179) &&
+                             verify_reg(2'd2, 8'd145) &&
+                             verify_reg(2'd3, 8'd2) &&
+                             verify_dmem(8'd0, 8'd251) && 
+                             verify_dmem(8'd1, 8'd106) &&
+                             verify_dmem(8'd2, 8'd145));
+
+            /*
             display_cycles(100);
 
-            verify_reg(2'd0, 8'd106);
-            verify_reg(2'd1, 8'd179);
-            verify_reg(2'd2, 8'd145);
-            verify_reg(2'd3, 8'd2);
+            disp_verify_reg(2'd0, 8'd106);
+            disp_verify_reg(2'd1, 8'd179);
+            disp_verify_reg(2'd2, 8'd145);
+            disp_verify_reg(2'd3, 8'd2);
 
-            verify_dmem(8'd0, 8'd251);
-            verify_dmem(8'd1, 8'd106);
-            verify_dmem(8'd2, 8'd145);
+            disp_verify_dmem(8'd0, 8'd251);
+            disp_verify_dmem(8'd1, 8'd106);
+            disp_verify_dmem(8'd2, 8'd145);
+            */
         end
     endtask
 
     task test_alu_shift;
+
         begin
             reset_CPU();
             clear_RAM();
@@ -544,21 +457,32 @@ module cpu_top_tb;
 
             #2;
 
+            repeat(70) @ (posedge clk);
+            tests_pass[4] = (verify_reg(2'd0, 8'd25) &&
+                             verify_reg(2'd1, 8'd192) &&
+                             verify_reg(2'd2, 8'hff) &&
+                             verify_reg(2'd3, 8'd252) &&
+                             verify_dmem(8'd255, 8'd25) &&
+                             verify_dmem(8'd254, 8'd192) &&
+                             verify_dmem(8'd252, 8'hff));
+
+            /*
             display_cycles(70);
 
-            verify_reg(2'd0, 8'd25);
-            verify_reg(2'd1, 8'd192);
-            verify_reg(2'd2, 8'hff);
-            verify_reg(2'd3, 8'd252);
+            disp_verify_reg(2'd0, 8'd25);
+            disp_verify_reg(2'd1, 8'd192);
+            disp_verify_reg(2'd2, 8'hff);
+            disp_verify_reg(2'd3, 8'd252);
 
-            verify_dmem(8'd255, 8'd25);
-            verify_dmem(8'd254, 8'd192);
-            verify_dmem(8'd252, 8'hff);
-
+            disp_verify_dmem(8'd255, 8'd25);
+            disp_verify_dmem(8'd254, 8'd192);
+            disp_verify_dmem(8'd252, 8'hff);
+            */
         end
     endtask
 
     task test_bne_taken;
+
         begin
             reset_CPU();
             clear_RAM();
@@ -576,15 +500,24 @@ module cpu_top_tb;
 
             #4;
 
+            repeat(20) @ (posedge clk);
+
+            tests_pass[5] = (verify_reg(2'd0, 8'd5) &&
+                             verify_reg(2'd1, 8'd3) &&
+                             verify_reg(2'd2, 8'd255));
+
+            /*
             display_cycles(20);
 
-            verify_reg(2'd0, 8'd5);
-            verify_reg(2'd1, 8'd3);
-            verify_reg(2'd2, 8'd255);
+            disp_verify_reg(2'd0, 8'd5);
+            disp_verify_reg(2'd1, 8'd3);
+            disp_verify_reg(2'd2, 8'd255);
+            */
         end
     endtask
 
     task test_bne_untaken;
+
         begin
             reset_CPU();
             clear_RAM();
@@ -602,15 +535,24 @@ module cpu_top_tb;
 
             #4;
 
+            repeat(20) @ (posedge clk);
+
+            tests_pass[6] = (verify_reg(2'd0, 8'd159) &&
+                             verify_reg(2'd1, 8'd159) &&
+                             verify_reg(2'd2, 8'd1));
+
+            /*
             display_cycles(20);
 
-            verify_reg(2'd0, 8'd159);
-            verify_reg(2'd1, 8'd159);
-            verify_reg(2'd2, 8'd1);
+            disp_verify_reg(2'd0, 8'd159);
+            disp_verify_reg(2'd1, 8'd159);
+            disp_verify_reg(2'd2, 8'd1);
+            */
         end
     endtask
 
     task test_bgt_pospos_taken;
+
         begin
             reset_CPU();
             clear_ROM();
@@ -628,11 +570,19 @@ module cpu_top_tb;
 
             #4;
 
+            repeat(20) @ (posedge clk);
+
+            tests_pass[7] = (verify_reg(2'd0, 8'd127) &&
+                             verify_reg(2'd1, 8'd111) &&
+                             verify_reg(2'd2, 8'd255));
+
+            /*
             display_cycles(20);
 
-            verify_reg(2'd0, 8'd127);
-            verify_reg(2'd1, 8'd111);
-            verify_reg(2'd2, 8'd255);
+            disp_verify_reg(2'd0, 8'd127);
+            disp_verify_reg(2'd1, 8'd111);
+            disp_verify_reg(2'd2, 8'd255);
+            */
 
         end
     endtask
@@ -655,16 +605,23 @@ module cpu_top_tb;
 
             #4;
 
+            repeat(25) @ (posedge clk);
+
+            tests_pass[8] = (verify_reg(2'd0, 8'd31) &&
+                             verify_reg(2'd1, 8'd30) &&
+                             verify_reg(2'd2, 8'd1));
+            /*
             display_cycles(20);
 
-            verify_reg(2'd0, 8'd31);
-            verify_reg(2'd1, 8'd30);
-            verify_reg(2'd2, 8'd1);
-
+            disp_verify_reg(2'd0, 8'd31);
+            disp_verify_reg(2'd1, 8'd30);
+            disp_verify_reg(2'd2, 8'd1);
+            */
         end
     endtask
 
     task test_bgt_posneg_taken;
+
         begin
             reset_CPU();
             clear_ROM();
@@ -682,16 +639,23 @@ module cpu_top_tb;
 
             #4;
 
+            repeat(25) @ (posedge clk);
+
+            tests_pass[9] = (verify_reg(2'd0, 8'd21) &&
+                             verify_reg(2'd1, 8'd249) &&
+                             verify_reg(2'd2, 8'd255));
+            /*
             display_cycles(20);
 
-            verify_reg(2'd0, 8'd21);
-            verify_reg(2'd1, 8'd249);
-            verify_reg(2'd2, 8'd255);
-
+            disp_verify_reg(2'd0, 8'd21);
+            disp_verify_reg(2'd1, 8'd249);
+            disp_verify_reg(2'd2, 8'd255);
+            */
         end
     endtask
 
     task test_bgt_posneg_untaken;
+
         begin
             reset_CPU();
             clear_ROM();
@@ -709,15 +673,24 @@ module cpu_top_tb;
 
             #4;
 
+            repeat(25) @ (posedge clk);
+
+            tests_pass[10] = (verify_reg(2'd0, 8'd22) &&
+                              verify_reg(2'd1, 8'd255) &&
+                              verify_reg(2'd2, 8'd1));
+
+            /*
             display_cycles(20);
 
-            verify_reg(2'd0, 8'd22);
-            verify_reg(2'd1, 8'd255);
-            verify_reg(2'd2, 8'd1);
+            disp_verify_reg(2'd0, 8'd22);
+            disp_verify_reg(2'd1, 8'd255);
+            disp_verify_reg(2'd2, 8'd1);
+            */
         end
     endtask
 
     task test_bgt_negneg_taken;
+
         begin
             reset_CPU();
             clear_ROM();
@@ -735,15 +708,24 @@ module cpu_top_tb;
 
             #4;
 
+            repeat(25) @ (posedge clk);
+
+            tests_pass[11] = (verify_reg(2'd0, 8'd128) &&
+                              verify_reg(2'd1, 8'd255) &&
+                              verify_reg(2'd2, 8'd255));
+
+            /*
             display_cycles(20);
 
-            verify_reg(2'd0, 8'd128);
-            verify_reg(2'd1, 8'd255);
-            verify_reg(2'd2, 8'd255);
+            disp_verify_reg(2'd0, 8'd128);
+            disp_verify_reg(2'd1, 8'd255);
+            disp_verify_reg(2'd2, 8'd255);
+            */
         end
     endtask
 
     task test_bgt_negneg_untaken;
+
         begin
             reset_CPU();
             clear_ROM();
@@ -751,7 +733,7 @@ module cpu_top_tb;
 
             CPU.IMEM.ROM[0] = 16'h8103; // ldi r0, -127
             CPU.IMEM.ROM[1] = 16'hfc43; // ldi r1, -4
-            CPU.IMEM.ROM[2] = 16'h0341; // bgt r0, r1, 3
+            CPU.IMEM.ROM[2] = 16'h031e; // bgt r0, r1, 3
             CPU.IMEM.ROM[3] = 16'h0183; // ldi r2, 1
             CPU.IMEM.ROM[4] = 16'h020c; // jmp 2 
             CPU.IMEM.ROM[5] = 16'hff83; // ldi r2, 255
@@ -761,15 +743,24 @@ module cpu_top_tb;
 
             #4;
 
+            repeat(25) @ (posedge clk);
+
+            tests_pass[12] = (verify_reg(2'd0, 8'd129) && 
+                              verify_reg(2'd1, 8'd252) &&
+                              verify_reg(2'd2, 8'd1));
+
+            /*
             display_cycles(20);
 
-            verify_reg(2'd0, 8'd129);
-            verify_reg(2'd1, 8'd252);
-            verify_reg(2'd2, 8'd1);
+            disp_verify_reg(2'd0, 8'd129);
+            disp_verify_reg(2'd1, 8'd252);
+            disp_verify_reg(2'd2, 8'd1);
+            */
         end
     endtask
 
     task test_bgt_equal_untaken;
+
         begin
             reset_CPU();
             clear_ROM();
@@ -787,15 +778,23 @@ module cpu_top_tb;
 
             #4;
 
+            repeat(25) @ (posedge clk);
+
+            tests_pass[13] = (verify_reg(2'd0, 8'd12) &&
+                              verify_reg(2'd1, 8'd12) &&
+                              verify_reg(2'd2, 8'd1));
+            /*
             display_cycles(20);
 
-            verify_reg(2'd0, 8'd12);
-            verify_reg(2'd1, 8'd12);
-            verify_reg(2'd2, 8'd1);
+            disp_verify_reg(2'd0, 8'd12);
+            disp_verify_reg(2'd1, 8'd12);
+            disp_verify_reg(2'd2, 8'd1);
+            */
         end
     endtask
 
     task edge_case_modulo;
+
         begin
             reset_CPU();
             clear_RAM();
@@ -808,15 +807,19 @@ module cpu_top_tb;
 
             $display("ldi r0, 255\nldi r1, 1\nadd r0, r1\njmp 0\n");
 
+            repeat(15) @ (posedge clk);
+
+            tests_pass[14] = verify_reg(2'd0, 8'd0);
+            /*
             display_cycles(15);
 
-            verify_reg(2'd0, 8'd0);
-            check_reg(2'd0);
-            check_reg(2'd1);
+            disp_verify_reg(2'd0, 8'd0);
+            */
         end
     endtask
 
     task edge_case_overflow;
+
         begin
             reset_CPU();
             clear_RAM();
@@ -834,15 +837,21 @@ module cpu_top_tb;
             
             CPU.IMEM.ROM[7] = 16'h000c; // jmp 0
 
-            $display("ldi r1, 127\nldi r3, 0\nldi r2, 1\nadd r0, r1\nbgt r0, r3, 3\nldi r3, 1\njmp 2\njmp 0\n");
+            $display("ldi r1, 127\nldi r3, 0\nldi r2, 1\nadd r2, r1\nbgt r2, r3, 3\nldi r3, 1\njmp 2\njmp 0\n");
 
+            repeat(30) @ (posedge clk);
+
+            tests_pass[15] = verify_reg(2'd3, 8'd1);
+            /*
             display_cycles(30);
 
-            verify_reg(2'd3, 8'd1);
+            disp_verify_reg(2'd3, 8'd1);
+            */
         end
     endtask
 
     task edge_case_reg_readwrite;
+
         begin
             reset_CPU();
             clear_RAM();
@@ -855,13 +864,20 @@ module cpu_top_tb;
 
             $display("ldi r0, 10\nldi r1, 40\nadd r0, r1\nadd r0, r1\n");
 
+            repeat(15) @ (posedge clk);
+
+            tests_pass[16] = verify_reg(2'd0, 8'd90);
+
+            /*
             display_cycles(15);
 
-            verify_reg(2'd0, 8'd90);
+            disp_verify_reg(2'd0, 8'd90);
+            */
         end
     endtask
 
-    task fibbonacci_signed;
+    task fibonacci_signed;
+
         begin
             reset_CPU();
             clear_RAM();
@@ -892,24 +908,87 @@ module cpu_top_tb;
 
             repeat(300) @(posedge clk);
 
-            verify_dmem(8'd0,  8'd0);
-            verify_dmem(8'd1,  8'd1);
-            verify_dmem(8'd2,  8'd1);
-            verify_dmem(8'd3,  8'd2);
-            verify_dmem(8'd4,  8'd3);
-            verify_dmem(8'd5,  8'd5);
-            verify_dmem(8'd6,  8'd8);
-            verify_dmem(8'd7,  8'd13);
-            verify_dmem(8'd8,  8'd21);
-            verify_dmem(8'd9,  8'd34);
-            verify_dmem(8'd10, 8'd55);
-            verify_dmem(8'd11, 8'd89);
+            tests_pass[17] = (verify_dmem(8'd0, 8'd0) &&
+                              verify_dmem(8'd1, 8'd1) &&
+                              verify_dmem(8'd2, 8'd1) &&
+                              verify_dmem(8'd3, 8'd2) &&
+                              verify_dmem(8'd4, 8'd3) &&
+                              verify_dmem(8'd5, 8'd5) &&
+                              verify_dmem(8'd6, 8'd8) &&
+                              verify_dmem(8'd7, 8'd13) &&
+                              verify_dmem(8'd8, 8'd21) && 
+                              verify_dmem(8'd9, 8'd34) &&
+                              verify_dmem(8'd10, 8'd55) &&
+                              verify_dmem(8'd11, 8'd89) &&
+                              verify_reg(2'd3, 8'd12));
 
-            verify_reg(2'd3, 8'd12);
+            /*
+            disp_verify_dmem(8'd0, 8'd0);
+            disp_verify_dmem(8'd1, 8'd1);
+            disp_verify_dmem(8'd2, 8'd1);
+            disp_verify_dmem(8'd3, 8'd2);
+            disp_verify_dmem(8'd4, 8'd3);
+            disp_verify_dmem(8'd5, 8'd5);
+            disp_verify_dmem(8'd6, 8'd8);
+            disp_verify_dmem(8'd7, 8'd13);
+            disp_verify_dmem(8'd8, 8'd21);
+            disp_verify_dmem(8'd9, 8'd34);
+            disp_verify_dmem(8'd10, 8'd55);
+            disp_verify_dmem(8'd11, 8'd89);
+
+            disp_verify_reg(2'd3, 8'd12);
+            */
         end
     endtask
 
-    
+    task auto_test;
+        begin
+            test_ldi_add_mov();
+
+            test_load_store_sub();
+
+            test_OR();
+
+            test_alu_logic();
+
+            test_alu_shift();
+
+            test_bne_taken();
+
+            test_bne_untaken();
+            
+            test_bgt_pospos_taken();
+
+            test_bgt_pospos_untaken();
+
+            test_bgt_posneg_taken();
+
+            test_bgt_posneg_untaken();
+
+            test_bgt_negneg_taken();
+
+            test_bgt_negneg_untaken();
+
+            test_bgt_equal_untaken();
+
+            edge_case_modulo();
+
+            edge_case_overflow();
+
+            edge_case_reg_readwrite();
+
+            fibonacci_signed();
+
+            for (l = 0; l < TOTAL_TESTS; l = l + 1)
+                begin
+                    if (tests_pass[l])
+                        $display("Test %0d PASSED", l);
+                    else
+                        $display("Test %0d FAILED", l);
+                end
+        end
+    endtask
+
 
     // INITIALIZE CLOCK
     initial
@@ -962,7 +1041,9 @@ module cpu_top_tb;
 
         //edge_case_reg_readwrite();
 
-        fibbonacci_signed();
+        //fibonacci_signed();
+
+        auto_test();
 
         $finish;
 

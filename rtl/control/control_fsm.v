@@ -75,7 +75,6 @@ module control_fsm(clk, reset, opcode, N, Z, V, memRI, IRLd, PColdW, RegLd, PCse
 
                     STORE:
                     begin
-                        memRD = 1;
                         memW = 1;
                         nextCycle = cycle0;
                     end

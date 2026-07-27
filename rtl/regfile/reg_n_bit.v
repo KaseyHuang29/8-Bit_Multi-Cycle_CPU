@@ -12,7 +12,7 @@ module reg_n_bit #(parameter N = 8)
             // therefore, enable is just a condition inside the always block that is checked when on posedge clk 
     begin
         if (reset)
-            Q <= {N{1'b0}};
+            Q <= 0;
         else if (enable)
             Q <= D;
         // don't need else condition; just makes explicit that if !enabled, value doesn't change
