@@ -5,10 +5,10 @@ module alu_tb;
     reg [2:0] ALUop;
     reg [7:0] Ain, Bin;
     reg [1:0] shift2bits;
-    reg flagW;
+    reg flagEn;
 
     // declare DUT outputs as wire 
-    wire Z, N, V;
+    wire Z, N, V, C;
     wire [7:0] ALUout;
 
     // instantiate the DUT (alu)
@@ -19,13 +19,14 @@ module alu_tb;
           .Z(Z), 
           .N(N), 
           .V(V), 
+          .C(C),
           .ALUout(ALUout),
-          .flagW(flagW));
+          .flagEn(flagEn));
 
     // pass/fail flag for expected output 
-    parameter TEST_TOTAL = 24;
+    parameter TEST_TOTAL = 26;
     reg [TEST_TOTAL-1:0] pass;
-    reg E_Z, E_N, E_V;
+    reg E_Z, E_N, E_V, E_C;
     reg [7:0] E_ALUout;
 
     // test summary
@@ -46,7 +47,7 @@ module alu_tb;
             // 1 means dump only signals under alu_tb, but not signals inside instantiated modules
         $dumpvars(0, alu_tb);
 
-        flagW = 1;
+        flagEn = 1;
 
         $display("## ADDITION TEST CASES ## \n");
 
@@ -699,62 +700,126 @@ module alu_tb;
         else
             $display("FAIL\n");
 
+        $display("## CARRY OUT TESTS ##");
 
-        // OR with MSB result set
+        // carry out ADD
 
-        $display("OR with MSB result set\n");
+        $display("carry out ADD\n");
 
         // expected output
-        E_N = 1;
+        E_N = 0;
         E_V = 0;
-        E_Z = 0;
-        E_ALUout = 8'b11111011; // 8'hFB
+        E_Z = 1;
+        E_C = 1;
+        E_ALUout = 8'b00000000; 
 
         // input
-        Ain = 8'hB3; // 179 = 10110011
-        Bin = 8'h6A; // 106 = 01101010
-        ALUop = 3'b100; // OR
+        Ain = 8'd255;
+        Bin = 8'd1; 
+        ALUop = 3'b000; 
         #10;
 
         $display("Expected Output:");
-        $display("Ain = %b (unsigned %0d)\nBin = %b (unsigned %0d)\nALUout = %b (unsigned %0d)\nZ = %b\nN = %b\nV = %0b\n", Ain, Ain, Bin, Bin, E_ALUout, E_ALUout, E_Z, E_N, E_V);
+        $display("Ain = %b (unsigned %0d)\nBin = %b (unsigned %0d)\nALUout = %b (unsigned %0d)\nZ = %b\nN = %b\nV = %0b\nC = %0b\n", Ain, Ain, Bin, Bin, E_ALUout, E_ALUout, E_Z, E_N, E_V, E_C);
 
         $display("Actual Output:");
-        $display("Ain = %b (unsigned %0d)\nBin = %b (unsigned %0d)\nALUout = %b (unsigned %0d)\nZ = %b\nN = %b\nV = %0b\n", Ain, Ain, Bin, Bin, ALUout, ALUout, Z, N, V);
+        $display("Ain = %b (unsigned %0d)\nBin = %b (unsigned %0d)\nALUout = %b (unsigned %0d)\nZ = %b\nN = %b\nV = %0b\nC = %0b\n", Ain, Ain, Bin, Bin, ALUout, ALUout, Z, N, V, C);
 
-        pass[22] = (E_Z == Z) & (E_N == N) & (E_V == V) & (E_ALUout == ALUout);
+        pass[22] = (E_Z == Z) & (E_N == N) & (E_V == V) & (E_C == C) & (E_ALUout == ALUout);
     
         if (pass[22])
             $display("PASS\n");
         else
             $display("FAIL\n");
 
+        // carry out, signed overflow ADD
 
-        // XOR with MSB result set
+        $display("carry out, signed overflow ADD\n");
 
-        $display("XOR with MSB result set\n");
+        // expected output
+        E_N = 0;
+        E_V = 1;
+        E_Z = 1;
+        E_C = 1;
+        E_ALUout = 8'b00000000; 
+
+        // input
+        Ain = 8'd128; 
+        Bin = 8'd128; 
+        ALUop = 3'b000; 
+        #10;
+
+        $display("Expected Output:");
+        $display("Ain = %b (unsigned %0d)\nBin = %b (unsigned %0d)\nALUout = %b (unsigned %0d)\nZ = %b\nN = %b\nV = %0b\nC = %0b\n", Ain, Ain, Bin, Bin, E_ALUout, E_ALUout, E_Z, E_N, E_V, E_C);
+
+        $display("Actual Output:");
+        $display("Ain = %b (unsigned %0d)\nBin = %b (unsigned %0d)\nALUout = %b (unsigned %0d)\nZ = %b\nN = %b\nV = %0b\nC = %0b\n", Ain, Ain, Bin, Bin, ALUout, ALUout, Z, N, V, C);
+
+        pass[23] = (E_Z == Z) & (E_N == N) & (E_V == V) & (E_C == C) & (E_ALUout == ALUout);
+    
+        if (pass[23])
+            $display("PASS\n");
+        else
+            $display("FAIL\n");
+
+        // no borrow/carry out SUB
+
+        $display("no carry out SUB (no borrow)\n");
+
+        // expected output
+        E_N = 0;
+        E_V = 0;
+        E_Z = 0;
+        E_C = 0;
+        E_ALUout = 8'b00001111; 
+
+        // input
+        Ain = 8'd45;
+        Bin = 8'd30;
+        ALUop = 3'b001; 
+        #10;
+
+        $display("Expected Output:");
+        $display("Ain = %b (unsigned %0d)\nBin = %b (unsigned %0d)\nALUout = %b (unsigned %0d)\nZ = %b\nN = %b\nV = %0b\nC = %0b\n", Ain, Ain, Bin, Bin, E_ALUout, E_ALUout, E_Z, E_N, E_V, E_C);
+
+        $display("Actual Output:");
+        $display("ALUresult = %b\n", a.ALUresult);
+        $display("Ain = %b (unsigned %0d)\nBin = %b (unsigned %0d)\nALUout = %b (unsigned %0d)\nZ = %b\nN = %b\nV = %0b\nC = %0b\n", Ain, Ain, Bin, Bin, ALUout, ALUout, Z, N, V, C);
+
+        pass[24] = (E_Z == Z) & (E_N == N) & (E_V == V) & (E_C == C) & (E_ALUout == ALUout);
+    
+        if (pass[24])
+            $display("PASS\n");
+        else
+            $display("FAIL\n");
+
+        // borrow/carry out SUB
+
+        $display("carry out SUB (borrow)\n");
 
         // expected output
         E_N = 1;
         E_V = 0;
         E_Z = 0;
-        E_ALUout = 8'b11011001; // 8'hD9
+        E_C = 1;
+        E_ALUout = 8'b11110001; 
 
         // input
-        Ain = 8'hB3; // 179 = 10110011
-        Bin = 8'h6A; // 106 = 01101010
-        ALUop = 3'b101; // XOR
+        Ain = 8'd30;
+        Bin = 8'd45;
+        ALUop = 3'b001; 
         #10;
 
         $display("Expected Output:");
-        $display("Ain = %b (unsigned %0d)\nBin = %b (unsigned %0d)\nALUout = %b (unsigned %0d)\nZ = %b\nN = %b\nV = %0b\n", Ain, Ain, Bin, Bin, E_ALUout, E_ALUout, E_Z, E_N, E_V);
+        $display("Ain = %b (unsigned %0d)\nBin = %b (unsigned %0d)\nALUout = %b (unsigned %0d)\nZ = %b\nN = %b\nV = %0b\nC = %0b\n", Ain, Ain, Bin, Bin, E_ALUout, E_ALUout, E_Z, E_N, E_V, E_C);
 
         $display("Actual Output:");
-        $display("Ain = %b (unsigned %0d)\nBin = %b (unsigned %0d)\nALUout = %b (unsigned %0d)\nZ = %b\nN = %b\nV = %0b\n", Ain, Ain, Bin, Bin, ALUout, ALUout, Z, N, V);
+        $display("ALUresult = %b\n", a.ALUresult);
+        $display("Ain = %b (unsigned %0d)\nBin = %b (unsigned %0d)\nALUout = %b (unsigned %0d)\nZ = %b\nN = %b\nV = %0b\nC = %0b\n", Ain, Ain, Bin, Bin, ALUout, ALUout, Z, N, V, C);
 
-        pass[23] = (E_Z == Z) & (E_N == N) & (E_V == V) & (E_ALUout == ALUout);
+        pass[25] = (E_Z == Z) & (E_N == N) & (E_V == V) & (E_C == C) & (E_ALUout == ALUout);
     
-        if (pass[23])
+        if (pass[25])
             $display("PASS\n");
         else
             $display("FAIL\n");

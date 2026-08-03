@@ -27,7 +27,7 @@ module cpu_core(clk, reset, addrI, dataReadI, memRI, addrD, dataWriteD, dataRead
     assign addrD = B_Q;
     assign dataWriteD = A_Q;
     assign MDR_D = dataReadD;
-    
+
     // instruction register data
     wire [7:0] imm8;
     wire [1:0] ra, rb;
@@ -39,9 +39,9 @@ module cpu_core(clk, reset, addrI, dataReadI, memRI, addrD, dataWriteD, dataRead
     assign opcode = IR_Q[3:0];
 
     // FSM control signals
-    wire N, V, Z;
-    //wire memRI, IRLd, PColdW, RegLd, PCsel, incrSel, PCW, RFW, Bsel, ALUoutLd, flagW, MDRLd, memRD, memW;
-    wire IRLd, PColdW, RegLd, PCsel, incrSel, PCW, RFW, Bsel, ALUoutLd, flagW, MDRLd;
+    wire N, V, Z, C;
+    
+    wire IRLd, PColdW, RegLd, PCsel, incrSel, PCW, RFW, Bsel, ALUoutLd, flagEn, MDRLd;
     wire [2:0] ALUop;
     wire [1:0] dataSel;
 
@@ -65,13 +65,10 @@ module cpu_core(clk, reset, addrI, dataReadI, memRI, addrD, dataWriteD, dataRead
 
     reg_n_bit #(.N(16)) IR(.D(IR_D), .Q(IR_Q), .clk(clk), .enable(IRLd), .reset(reset));
 
-    //instr_mem IMEM(.addr(PC_Q), .dataOut(IR_D), .memRI(memRI));
-    //data_mem DMEM(.clk(clk), .addr(B_Q), .dataIn(A_Q), .dataOut(MDR_D), .memRD(memRD), .memW(memW));
-
-    control_fsm FSM(.clk(clk), .reset(reset), .opcode(opcode), .N(N), .Z(Z), .V(V), .memRI(memRI), 
+    control_fsm FSM(.clk(clk), .reset(reset), .opcode(opcode), .N(N), .Z(Z), .V(V), .C(C), .memRI(memRI), 
                     .IRLd(IRLd), .PColdW(PColdW), .RegLd(RegLd), .PCsel(PCsel), 
                     .incrSel(incrSel), .PCW(PCW), .RFW(RFW), .Bsel(Bsel), .ALUop(ALUop), 
-                    .ALUoutLd(ALUoutLd), .flagW(flagW), .dataSel(dataSel), .MDRLd(MDRLd), 
+                    .ALUoutLd(ALUoutLd), .flagEn(flagEn), .dataSel(dataSel), .MDRLd(MDRLd), 
                     .memRD(memRD), .memW(memW));
 
     four_one_mux_8bit DataSelect(.sel(dataSel), .a(imm8), .b(MDR_Q), .c(ALUout_Q), .d(B_Q), .out(selectedData));
@@ -80,6 +77,6 @@ module cpu_core(clk, reset, addrI, dataReadI, memRI, addrD, dataWriteD, dataRead
 
     two_one_mux_8bit BSelect(.sel(Bsel), .a(B_Q), .b(imm8), .out(selectedB));
 
-    alu ALU(.ALUop(ALUop), .Ain(A_Q), .Bin(selectedB), .shift2bits(rb), .Z(Z), .N(N), .V(V), .ALUout(ALUout_D), .flagW(flagW));
+    alu ALU(.ALUop(ALUop), .Ain(A_Q), .Bin(selectedB), .shift2bits(rb), .Z(Z), .N(N), .V(V), .C(C), .ALUout(ALUout_D), .flagEn(flagEn));
 
 endmodule

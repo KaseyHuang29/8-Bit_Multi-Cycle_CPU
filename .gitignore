@@ -6,5 +6,6 @@
 # Icarus Verilog compiled outputs
 *.out
 
-# Other text files
+# Other files
 *.txt
+*.f
