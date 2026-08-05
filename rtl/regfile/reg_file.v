@@ -9,24 +9,24 @@ module reg_file(ra, rb, rw, RFW, dataIn, dataA, dataB, clk, reset);
     wire enable0, enable1, enable2, enable3;
 
     // instantiate 4 registers
-        // each register's input is already set to the desired input data
+        // each register's input .D wired to the desired input data
         // each register's corresponding enable is controlled by the decoder logic below
-        
     reg_n_bit #(.N(8)) R0 (.D(dataIn), .Q(dataOut0), .clk(clk), .enable(enable0), .reset(reset));
     reg_n_bit #(.N(8)) R1 (.D(dataIn), .Q(dataOut1), .clk(clk), .enable(enable1), .reset(reset));
     reg_n_bit #(.N(8)) R2 (.D(dataIn), .Q(dataOut2), .clk(clk), .enable(enable2), .reset(reset));
     reg_n_bit #(.N(8)) R3 (.D(dataIn), .Q(dataOut3), .clk(clk), .enable(enable3), .reset(reset));
 
-    parameter r0 = 2'b00, r1 = 2'b01, r2 = 2'b10, r3 = 2'b11;
-
     // register write is synchronous
-        // decoder logic; 2-bit rw selects one of four one-hot coded outputs to select which register gets write enabled
+        // 2-to-4 decoder logic:
+        // 2-bit rw produces one of 4 one-hot coded outputs to select which register gets write-enabled
     assign enable0 = ~rw[1] & ~rw[0] & RFW; // enable pattern: 0001 --> reg0 write enabled
     assign enable1 = ~rw[1] & rw[0] & RFW;  // enable pattern: 0010 --> reg1 write enabled
     assign enable2 = rw[1] & ~rw[0] & RFW;  // enable pattern: 0100 --> reg2 write enabled
     assign enable3 = rw[1] & rw[0] & RFW;   // enable pattern: 1000 --> reg3 write enabled 
 
-    // register read is combinational/asynchronous 
+    parameter r0 = 2'b00, r1 = 2'b01, r2 = 2'b10, r3 = 2'b11;
+
+    // register read is combinational/asynchronous
         // regular 8-bit wide 4 to 1 mux
     always @ (*)
     begin

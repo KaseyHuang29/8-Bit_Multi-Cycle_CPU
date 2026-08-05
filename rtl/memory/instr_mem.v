@@ -5,7 +5,7 @@ module instr_mem(addr, dataOut, memRI);
 
     reg [15:0] ROM [0:255]; // 16-bit instructions, from addresses 0 to 255
 
-    // combinational so it's asynchronous read
+    // combinational/asynchronous read
     always @ (*)
     begin
         if (memRI) 

@@ -6,7 +6,7 @@ module data_mem(clk, addr, dataIn, dataOut, memRD, memW);
 
     reg [7:0] RAM [0:255]; // 8-bit data, from addresses 0 to 255
 
-    always @ (*)
+    always @ (*) // combinational/asynchronous read
     begin
         if (memRD) 
             dataOut = RAM[addr];
@@ -14,7 +14,7 @@ module data_mem(clk, addr, dataIn, dataOut, memRD, memW);
             dataOut = 8'd0;
     end
 
-    always @ (posedge clk)
+    always @ (posedge clk) // synchronous write
     begin
         if (memW)
             RAM[addr] <= dataIn;
