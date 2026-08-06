@@ -76,7 +76,7 @@ Note: the SHIFT instruction uses additional bits in its encoding to support left
 | or | 1001 | or ra, rb | ra <-- ra \| rb |
 | xor | 1010 | xor ra, rb | ra <-- ra ^ rb |
 | not | 1011 | not ra | ra <-- ~ra |
-| jmp | 1100 | jmp imm8 | PC <-- PCold + imm8 |
-| bne | 1101 | bne ra, rb, imm8 | PC <-- PCold + imm8 if ra != rb |
-| bgt | 1110 | bgt ra, rb, imm8 | PC <-- PCold + imm8 if signed ra > rb |
-| bgtu | 1111 | bgtu ra, rb imm8 | PC <-- PCold + imm8 if unsigned ra > rb |
+| jmp | 1100 | jmp imm8 | PC <-- PC + imm8 |
+| bne | 1101 | bne ra, rb, imm8 | PC <-- PC + imm8 if ra != rb |
+| bgt | 1110 | bgt ra, rb, imm8 | PC <-- PC + imm8 if signed ra > rb |
+| bgtu | 1111 | bgtu ra, rb imm8 | PC <-- PC + imm8 if unsigned ra > rb |
