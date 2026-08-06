@@ -93,7 +93,9 @@ Programs can be loaded in two ways:
 2. Load instructions to the memory from a hexadecimal memory initialization file using $readmemh
 
     Example: 
+
     ```$readmemh("programs/example_program.hex", CPU.IMEM.ROM);```
 
     and inside example_program.hex:
+    
     ```0503 // ldi r0, 5```
