@@ -3,7 +3,7 @@ A custom 8-bit multi-cycle CPU implemented in Verilog with 16-bit instructions. 
 
 ![Custom 8-bit multi-cycle CPU block diagram](docs/CPU_block_diagram.svg)
 
-## Main Features
+## Main Modules
 * Instruction memory
 * Data memory
 * Program Counter (PC) Adder
@@ -14,33 +14,42 @@ A custom 8-bit multi-cycle CPU implemented in Verilog with 16-bit instructions. 
 ## Architecture
 ### Memory Organization
 The processor uses a Harvard-style architecture with separate instruction and data memories, each with 256 address locations. 
+
 * 16-bit wide instruction memory is read-only; programs can be loaded from a testbench directly or with a memory initialization file 
 * 8-bit wide data memory supports reads and writes
 
 ### PC Adder
-The PC uses a dedicated adder instead of the ALU. It selects either a constant increment or the encoded 8-bit immediate of the instruction, which supports relative addressing. 
+The PC uses a dedicated adder instead of the ALU. It selects either a constant increment or the encoded 8-bit immediate of the instruction, and supports relative addressing. 
 
 ## Register file (RF)
 The RF has four 8-bit general-purpose registers (r0-r3). 
 * Has two read ports 'ra' and 'rb' for the encoded destination and source register
-* Has one write port for instructions that write back to a register; the destination register is encoded by the 'ra' field of the instruction 
+* Has one write port for register-write; the destination register is encoded by the 'ra' field of the instruction 
 
 ## Arithmetic Logic Unit (ALU)
 The ALU supports:
+
 * Arithmetic: addition (ADD), subtraction (SUB)
 * Bitwise logic operations: AND, OR, XOR, NOT
-* Shifts: logical left (SLLI), logical right (SLRI), arithmetic right (SARI)
+* SHIFT, which handles:
+    * Logical left (SLLI)
+    * Logical right (SLRI)
+    * Arithmetic right (SARI)
+
 and outputs an 8-bit result.
 
 The ALU also generates four condition flags:
+
 * Z: Zero 
 * N: Negative
 * V: Signed overflow
 * C: Carry out
+
 used for branching instructions.
 
 ## Control Unit
-The processor uses a finite state machine (FSM) to control the multi-cycle execution of instructions. 
+The processor uses a finite state machine (FSM) to control the multi-cycle execution of instructions.
+
 * Cycle 0: Fetch instruction and store current program counter value 
 * Cycle 1: Load registers and increment program counter
 * Cycle 2: Decode and execute instruction
@@ -51,21 +60,21 @@ The processor uses a custom 18-instruction ISA, encoded by 16 4-bit opcodes (000
 
 | Instruction | Opcode | Syntax | Operation |
 |----|----|----|----|
-| LOAD | 0000 | LOAD ra, (rb) | ra <- DMEM[rb] |
-| STORE | 0001 | STORE ra, (rb) | DMEM[rb] <- ra |
-| MOV | 0010 | MOV ra, rb | ra <- rb |
-| LDI | 0011 | LDI ra, imm8 | ra <- imm8 |
-| ADD | 0100 | ADD ra, rb | ra <- ra + rb |
-| ADDI | 0101 | ADDI ra, imm8 | ra <- ra + imm8 |
-| SUB | 0110 | SUB ra, rb | ra <- ra - rb |
-| SLLI | 0111 | SLLI ra, imm3 | ra <- ra << imm3 |
-| SLRI | 0111 | SLRI ra, imm3 | ra <- ra >> imm3 |
-| SARI | 0111 | SARI ra, imm3 | ra <- ra >>> imm3 |
-| AND | 1000 | AND ra, rb | ra <- ra & rb |
-| OR | 1001 | OR ra, rb | ra <- ra \| rb |
-| XOR | 1010 | XOR ra, rb | ra <- ra ^ rb |
-| NOT | 1011 | NOT ra | ra <- ~ra |
-| JMP | 1100 | JMP imm8 | PC <- PCold + imm8 |
-| BNE | 1101 | BNE ra, rb, imm8 | Branch if ra != rb |
-| BGT | 1110 | BGT ra, rb, imm8 | Branch if signed ra > rb |
-| BGTU | 1111 | BGTU ra, rb imm8 | Branch if unsigned ra > rb |
+| load | 0000 | load ra, (rb) | ra <-- DMEM[rb] |
+| store | 0001 | store ra, (rb) | DMEM[rb] <-- ra |
+| mov | 0010 | mov ra, rb | ra <-- rb |
+| ldi | 0011 | ldi ra, imm8 | ra <-- imm8 |
+| add | 0100 | add ra, rb | ra <-- ra + rb |
+| addi | 0101 | addi ra, imm8 | ra <-- ra + imm8 |
+| sub | 0110 | sub ra, rb | ra <-- ra - rb |
+| slli | 0111 | slli ra, imm3 | ra <-- ra << imm3 |
+| slri | 0111 | slri ra, imm3 | ra <-- ra >> imm3 |
+| sari | 0111 | sari ra, imm3 | ra <-- ra >>> imm3 |
+| and | 1000 | and ra, rb | ra <-- ra & rb |
+| or | 1001 | or ra, rb | ra <-- ra \| rb |
+| xor | 1010 | xor ra, rb | ra <-- ra ^ rb |
+| not | 1011 | not ra | ra <-- ~ra |
+| jmp | 1100 | jmp imm8 | PC <-- PCold + imm8 |
+| bne | 1101 | bne ra, rb, imm8 | Branch PC <-- PCold + imm8 if ra != rb |
+| bgt | 1110 | bgt ra, rb, imm8 | Branch PC <-- PCold + imm8 if signed ra > rb |
+| bgtu | 1111 | bgtu ra, rb imm8 | Branch PC <-- PCold + imm8 if unsigned ra > rb |
