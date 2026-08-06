@@ -40,7 +40,7 @@ module alu_tb;
     begin
         // tell simulator what waveform file to create
             // .vcd file shows the waveforms in GTKWave
-        $dumpfile("alu_tb.vcd");
+        $dumpfile("tb/alu_tb.vcd");
 
         // tell simulator which signals to record in the waveform file
             // 0 means dump everything under alu_tb and all hierarchy levels

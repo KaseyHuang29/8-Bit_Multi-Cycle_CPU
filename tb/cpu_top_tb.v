@@ -1280,7 +1280,7 @@ module cpu_top_tb;
 
     initial 
     begin
-        $dumpfile("cpu_top_tb.vcd");
+        $dumpfile("tb/cpu_top_tb.vcd");
         $dumpvars(0, cpu_top_tb);
 
         //test_ldi_add_mov();
