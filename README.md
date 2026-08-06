@@ -80,3 +80,20 @@ Note: the SHIFT instruction uses additional bits in its encoding to support left
 | bne | 1101 | bne ra, rb, imm8 | PC <-- PC + imm8 if ra != rb |
 | bgt | 1110 | bgt ra, rb, imm8 | PC <-- PC + imm8 if signed ra > rb |
 | bgtu | 1111 | bgtu ra, rb imm8 | PC <-- PC + imm8 if unsigned ra > rb |
+
+## Running Programs
+The processor currently does not include an assembler; programs must be written as 16-bit machine-code instructions and loaded into the instruction memory prior to simulation.
+
+Programs can be loaded in two ways:
+1. Assign instructions to the memory directly from the testbench
+
+    Example: 
+    ```CPU.IMEM.ROM[0] = 16'h0503; // ldi r0, 5```
+
+2. Load instructions to the memory from a hexadecimal memory initialization file using $readmemh
+
+    Example: 
+    ```$readmemh("programs/example_program.hex", CPU.IMEM.ROM);```
+
+    and inside example_program.hex:
+    ```0503 // ldi r0, 5```

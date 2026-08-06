@@ -1231,7 +1231,7 @@ module cpu_top_tb;
             CPU.IMEM.ROM[15] = 16'hf40c; // jmp -12
             CPU.IMEM.ROM[16] = 16'h000c; // jmp 0
 
-            $display("ldi r0, 13\nldi r1, 9\nldi r2, 0\nldi r3, 0\nstore r1, (r3)\nbne r1, r3, 2\njmp 10\nslli r1, 7\n slri r1, 7\nbne r1, r3, 2\njmp 2\nadd r2, r0\nload r1, (r3)\n slri r1, 1\nslli r0, 1\njmp -12\njmp 0\n");
+            $display("ldi r0, 13\nldi r1, 9\nldi r2, 0\nldi r3, 0\nstore r1, (r3)\nbne r1, r3, 2\njmp 10\nslli r1, 7\nslri r1, 7\nbne r1, r3, 2\njmp 2\nadd r2, r0\nload r1, (r3)\nslri r1, 1\nslli r0, 1\njmp -12\njmp 0\n");
 
             repeat(300) @ (posedge clk);
 
