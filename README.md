@@ -59,8 +59,8 @@ The processor uses a custom 18-instruction ISA, encoded by 16 4-bit opcodes (000
 | ADDI | 0101 | ADDI ra, imm8 | ra <- ra + imm8 |
 | SUB | 0110 | SUB ra, rb | ra <- ra - rb |
 | SLLI | 0111 | SLLI ra, imm3 | ra <- ra << imm3 |
-| SLRI | 0111 | SRLI ra, imm3 | ra <- ra >> imm3 |
-| SARI | 0111 | SRAI ra, imm3 | ra <- ra >>> imm3 |
+| SLRI | 0111 | SLRI ra, imm3 | ra <- ra >> imm3 |
+| SARI | 0111 | SARI ra, imm3 | ra <- ra >>> imm3 |
 | AND | 1000 | AND ra, rb | ra <- ra & rb |
 | OR | 1001 | OR ra, rb | ra <- ra \| rb |
 | XOR | 1010 | XOR ra, rb | ra <- ra ^ rb |
