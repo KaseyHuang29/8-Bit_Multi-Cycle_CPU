@@ -85,17 +85,18 @@ Note: the SHIFT instruction uses additional bits in its encoding to support left
 The processor currently does not include an assembler; programs must be written as 16-bit machine-code instructions and loaded into the instruction memory prior to simulation.
 
 Programs can be loaded in two ways:
-1. Assign instructions to the memory directly from the testbench
+1. Assign instructions directly to the memory from the testbench
 
     Example: 
+
     ```CPU.IMEM.ROM[0] = 16'h0503; // ldi r0, 5```
 
-2. Load instructions to the memory from a hexadecimal memory initialization file using $readmemh
+2. Load instructions to the memory from a hexadecimal memory initialization file using ```$readmemh```
 
     Example: 
 
     ```$readmemh("programs/example_program.hex", CPU.IMEM.ROM);```
 
-    and inside example_program.hex:
-    
+    and inside ```example_program.hex```:
+
     ```0503 // ldi r0, 5```
