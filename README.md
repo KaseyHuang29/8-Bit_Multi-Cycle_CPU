@@ -75,6 +75,6 @@ The processor uses a custom 18-instruction ISA, encoded by 16 4-bit opcodes (000
 | xor | 1010 | xor ra, rb | ra <-- ra ^ rb |
 | not | 1011 | not ra | ra <-- ~ra |
 | jmp | 1100 | jmp imm8 | PC <-- PCold + imm8 |
-| bne | 1101 | bne ra, rb, imm8 | Branch PC <-- PCold + imm8 if ra != rb |
-| bgt | 1110 | bgt ra, rb, imm8 | Branch PC <-- PCold + imm8 if signed ra > rb |
-| bgtu | 1111 | bgtu ra, rb imm8 | Branch PC <-- PCold + imm8 if unsigned ra > rb |
+| bne | 1101 | bne ra, rb, imm8 | PC <-- PCold + imm8 if ra != rb |
+| bgt | 1110 | bgt ra, rb, imm8 | PC <-- PCold + imm8 if signed ra > rb |
+| bgtu | 1111 | bgtu ra, rb imm8 | PC <-- PCold + imm8 if unsigned ra > rb |
