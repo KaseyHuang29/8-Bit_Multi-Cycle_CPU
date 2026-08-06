@@ -10,7 +10,7 @@ module cpu_top_tb;
     integer k;
     integer l;
 
-    parameter TOTAL_TESTS = 25;
+    parameter TOTAL_TESTS = 26;
     reg [TOTAL_TESTS-1:0] tests_pass;
 
 
@@ -435,7 +435,7 @@ module cpu_top_tb;
             clear_ROM();
 
             CPU.IMEM.ROM[0]  = 16'h6603; // ldi r0, 102
-            CPU.IMEM.ROM[1]  = 16'h0227; // srli r0, 2
+            CPU.IMEM.ROM[1]  = 16'h0227; // slri r0, 2
             CPU.IMEM.ROM[2]  = 16'hffc3; // ldi r3, 255
             CPU.IMEM.ROM[3]  = 16'h0031; // store r0, (r3)
             CPU.IMEM.ROM[4]  = 16'h6643; // ldi r1, 102
@@ -443,12 +443,12 @@ module cpu_top_tb;
             CPU.IMEM.ROM[6]  = 16'hffc5; // addi r3, -1
             CPU.IMEM.ROM[7]  = 16'h0071; // store r1, (r3)
             CPU.IMEM.ROM[8]  = 16'he683; // ldi r2, 230 / -26
-            CPU.IMEM.ROM[9]  = 16'h0787; // srai r2, 7
+            CPU.IMEM.ROM[9]  = 16'h0787; // sari r2, 7
             CPU.IMEM.ROM[10] = 16'hfec5; // addi r3, -2
             CPU.IMEM.ROM[11] = 16'h00b1; // store r2, (r3)
             CPU.IMEM.ROM[12] = 16'h000c; // jmp 0
 
-            $display("ldi r0, 102\nsrli r0, 2\nldi r3, 255\nstore r0, (r3)\nldi r1, 102\nslli r1, 5\naddi r3, -1\nstore r1, (r3)\nldi r2, 230\nsrai r2, 7\naddi r3, -2\nstore r2, (r3)\njmp 0\n");
+            $display("ldi r0, 102\nslri r0, 2\nldi r3, 255\nstore r0, (r3)\nldi r1, 102\nslli r1, 5\naddi r3, -1\nstore r1, (r3)\nldi r2, 230\nsari r2, 7\naddi r3, -2\nstore r2, (r3)\njmp 0\n");
 
             #2;
 
@@ -780,190 +780,6 @@ module cpu_top_tb;
         end
     endtask
 
-    task edge_case_modulo;
-        begin
-            reset_CPU();
-            clear_RAM();
-            clear_ROM();
-
-            CPU.IMEM.ROM[0] = 16'hff03; // ldi r0, 255
-            CPU.IMEM.ROM[1] = 16'h0143; // ldi r1, 1
-            CPU.IMEM.ROM[2] = 16'h0014; // add r0, r1
-            CPU.IMEM.ROM[3] = 16'h000c; // jmp 0           
-
-            $display("ldi r0, 255\nldi r1, 1\nadd r0, r1\njmp 0\n");
-
-            repeat(15) @ (posedge clk);
-
-            tests_pass[14] = verify_reg(2'd0, 8'd0);
-            /*
-            display_cycles(15);
-
-            disp_verify_reg(2'd0, 8'd0);
-            */
-        end
-    endtask
-
-    task edge_case_overflow;
-        begin
-            reset_CPU();
-            clear_RAM();
-            clear_ROM();
-
-            CPU.IMEM.ROM[0] = 16'h7f43; // ldi r1, 127
-            CPU.IMEM.ROM[1] = 16'h00c3; // ldi r3, 0
-            CPU.IMEM.ROM[2] = 16'h0183; // ldi r2, 1
-
-            CPU.IMEM.ROM[3] = 16'h0094; // add r2, r1
-            CPU.IMEM.ROM[4] = 16'h03be; // bgt r2, r3, 3
-
-            CPU.IMEM.ROM[5] = 16'h01c3; // ldi r3, 1
-            CPU.IMEM.ROM[6] = 16'h020c; // jmp 2
-            
-            CPU.IMEM.ROM[7] = 16'h000c; // jmp 0
-
-            $display("ldi r1, 127\nldi r3, 0\nldi r2, 1\nadd r2, r1\nbgt r2, r3, 3\nldi r3, 1\njmp 2\njmp 0\n");
-
-            repeat(30) @ (posedge clk);
-
-            tests_pass[15] = verify_reg(2'd3, 8'd1);
-            /*
-            display_cycles(30);
-
-            disp_verify_reg(2'd3, 8'd1);
-            */
-        end
-    endtask
-
-    task edge_case_reg_readwrite;
-        begin
-            reset_CPU();
-            clear_RAM();
-            clear_ROM();
-
-            CPU.IMEM.ROM[0] = 16'h0a03; // ldi r0, 10
-            CPU.IMEM.ROM[1] = 16'h2843; // ldi r1, 40
-            CPU.IMEM.ROM[2] = 16'h0014; // add r0, r1
-            CPU.IMEM.ROM[3] = 16'h0014; // add r0, r1
-
-            $display("ldi r0, 10\nldi r1, 40\nadd r0, r1\nadd r0, r1\n");
-
-            repeat(15) @ (posedge clk);
-
-            tests_pass[16] = verify_reg(2'd0, 8'd90);
-
-            /*
-            display_cycles(15);
-
-            disp_verify_reg(2'd0, 8'd90);
-            */
-        end
-    endtask
-
-    task fibonacci_signed;
-        begin
-            reset_CPU();
-            clear_RAM();
-            clear_ROM();
-
-            CPU.IMEM.ROM[0] = 16'h0003; // ldi r0, 0
-            CPU.IMEM.ROM[1] = 16'h0143; // ldi r1, 1
-            CPU.IMEM.ROM[2] = 16'h00c3; // ldi r3, 0
-
-            CPU.IMEM.ROM[3] = 16'h0031; // store r0, (r3)   
-            CPU.IMEM.ROM[4] = 16'h01c5; // addi r3, 1
-            CPU.IMEM.ROM[5] = 16'h0071; // store r1, (r3)   
-            CPU.IMEM.ROM[6] = 16'h01c5; // addi r3, 1
-
-            CPU.IMEM.ROM[7] = 16'h0082; // mov r2, r0
-            CPU.IMEM.ROM[8] = 16'h0094; // add r2, r1      
-            CPU.IMEM.ROM[9] = 16'h062e; // bgt r0, r2, 6    
-
-            CPU.IMEM.ROM[10] = 16'h00b1; // store r2, (r3)
-            CPU.IMEM.ROM[11] = 16'h01c5; // addi r3, 1
-            CPU.IMEM.ROM[12] = 16'h0012; // mov r0, r1
-            CPU.IMEM.ROM[13] = 16'h0062; // mov r1, r2
-            CPU.IMEM.ROM[14] = 16'hf90c; // jmp -7          
-
-            CPU.IMEM.ROM[15] = 16'h000c; // jmp 0            
-
-            $display("ldi r0, 0\nldi r1, 1\nldi r3, 0\nstore r0, (r3)\naddi r3, 1\nstore r1, (r3)\naddi r3, 1\nmov r2, r0\nadd r2, r1\nbgt r0, r2, 6\nstore r2, (r3)\naddi r3, 1\nmov r0, r1\nmov r1, r2\njmp -7\njmp 0\n");
-
-            repeat(300) @(posedge clk);
-
-            tests_pass[17] = (verify_dmem(8'd0, 8'd0) &&
-                              verify_dmem(8'd1, 8'd1) &&
-                              verify_dmem(8'd2, 8'd1) &&
-                              verify_dmem(8'd3, 8'd2) &&
-                              verify_dmem(8'd4, 8'd3) &&
-                              verify_dmem(8'd5, 8'd5) &&
-                              verify_dmem(8'd6, 8'd8) &&
-                              verify_dmem(8'd7, 8'd13) &&
-                              verify_dmem(8'd8, 8'd21) && 
-                              verify_dmem(8'd9, 8'd34) &&
-                              verify_dmem(8'd10, 8'd55) &&
-                              verify_dmem(8'd11, 8'd89) &&
-                              verify_reg(2'd3, 8'd12));
-
-            /*
-            disp_verify_dmem(8'd0, 8'd0);
-            disp_verify_dmem(8'd1, 8'd1);
-            disp_verify_dmem(8'd2, 8'd1);
-            disp_verify_dmem(8'd3, 8'd2);
-            disp_verify_dmem(8'd4, 8'd3);
-            disp_verify_dmem(8'd5, 8'd5);
-            disp_verify_dmem(8'd6, 8'd8);
-            disp_verify_dmem(8'd7, 8'd13);
-            disp_verify_dmem(8'd8, 8'd21);
-            disp_verify_dmem(8'd9, 8'd34);
-            disp_verify_dmem(8'd10, 8'd55);
-            disp_verify_dmem(8'd11, 8'd89);
-
-            disp_verify_reg(2'd3, 8'd12);
-            */
-        end
-    endtask
-
-    task egyptian_multiplication;
-        begin
-            reset_CPU();
-            clear_RAM();
-            clear_ROM();
-
-            CPU.IMEM.ROM[0]  = 16'h0d03; // ldi r0, 13
-            CPU.IMEM.ROM[1]  = 16'h0943; // ldi r1, 9
-            CPU.IMEM.ROM[2]  = 16'h0083; // ldi r2, 0
-
-            CPU.IMEM.ROM[3]  = 16'h00c3; // ldi r3, 0
-            CPU.IMEM.ROM[4]  = 16'h0071; // store r1, (r3)
-
-            CPU.IMEM.ROM[5]  = 16'h027d; // bne r1, r3, 2
-            CPU.IMEM.ROM[6]  = 16'h0a0c; // jmp 10
-
-            CPU.IMEM.ROM[7]  = 16'h0777; // slli r1, 7
-            CPU.IMEM.ROM[8]  = 16'h0767; // srli r1, 7
-
-            CPU.IMEM.ROM[9]  = 16'h027d; // bne r1, r3, 2
-            CPU.IMEM.ROM[10] = 16'h020c; // jmp 2
-            CPU.IMEM.ROM[11] = 16'h0084; // add r2, r0
-
-            CPU.IMEM.ROM[12] = 16'h0070; // load r1, (r3)
-            CPU.IMEM.ROM[13] = 16'h0167; // srli r1, 1
-            CPU.IMEM.ROM[14] = 16'h0117; // slli r0, 1
-
-            CPU.IMEM.ROM[15] = 16'hf40c; // jmp -12
-            CPU.IMEM.ROM[16] = 16'h000c; // jmp 0
-
-            $display("ldi r0, 13\nldi r1, 9\nldi r2, 0\nldi r3, 0\nstore r1, (r3)\nbne r1, r3, 2\njmp 10\nslli r1, 7\nsrli r1, 7\nbne r1, r3, 2\njmp 2\nadd r2, r0\nload r1, (r3)\nsrli r1, 1\nslli r0, 1\njmp -12\njmp 0\n");
-
-            repeat(300) @ (posedge clk);
-
-            tests_pass[18] = verify_reg(2'd2, 8'd117);
-
-            disp_verify_reg(2'd2, 8'd117);
-        end
-    endtask
-
     task test_bgtu_edge_case1_taken;
         begin
             reset_CPU();
@@ -984,7 +800,7 @@ module cpu_top_tb;
 
             repeat(25) @ (posedge clk);
 
-            tests_pass[19] = (verify_reg(2'd0, 8'd255) &&
+            tests_pass[14] = (verify_reg(2'd0, 8'd255) &&
                               verify_reg(2'd1, 8'd1) &&
                               verify_reg(2'd2, 8'd255));
 
@@ -1019,7 +835,7 @@ module cpu_top_tb;
 
             repeat(25) @ (posedge clk);
 
-            tests_pass[20] = (verify_reg(2'd0, 8'd255) &&
+            tests_pass[15] = (verify_reg(2'd0, 8'd255) &&
                               verify_reg(2'd1, 8'd1) &&
                               verify_reg(2'd2, 8'd1));
 
@@ -1054,7 +870,7 @@ module cpu_top_tb;
 
             repeat(25) @ (posedge clk);
 
-            tests_pass[21] = (verify_reg(2'd0, 8'd128) &&
+            tests_pass[16] = (verify_reg(2'd0, 8'd128) &&
                               verify_reg(2'd1, 8'd127) &&
                               verify_reg(2'd2, 8'd255));
 
@@ -1088,7 +904,7 @@ module cpu_top_tb;
 
             repeat(25) @ (posedge clk);
 
-            tests_pass[22] = (verify_reg(2'd0, 8'd128) &&
+            tests_pass[17] = (verify_reg(2'd0, 8'd128) &&
                               verify_reg(2'd1, 8'd127) &&
                               verify_reg(2'd2, 8'd1));
 
@@ -1122,7 +938,7 @@ module cpu_top_tb;
 
             repeat(25) @ (posedge clk);
 
-            tests_pass[23] = (verify_reg(2'd0, 8'd255) &&
+            tests_pass[18] = (verify_reg(2'd0, 8'd255) &&
                               verify_reg(2'd1, 8'd255) &&
                               verify_reg(2'd2, 8'd1));
 
@@ -1133,6 +949,187 @@ module cpu_top_tb;
             disp_verify_reg(2'd1, 8'd255);
             disp_verify_reg(2'd2, 8'd1);
         
+        end
+    endtask
+
+    task edge_case_modulo;
+        begin
+            reset_CPU();
+            clear_RAM();
+            clear_ROM();
+
+            CPU.IMEM.ROM[0] = 16'hff03; // ldi r0, 255
+            CPU.IMEM.ROM[1] = 16'h0143; // ldi r1, 1
+            CPU.IMEM.ROM[2] = 16'h0014; // add r0, r1
+            CPU.IMEM.ROM[3] = 16'h000c; // jmp 0           
+
+            $display("ldi r0, 255\nldi r1, 1\nadd r0, r1\njmp 0\n");
+
+            repeat(15) @ (posedge clk);
+
+            tests_pass[19] = verify_reg(2'd0, 8'd0);
+            /*
+            display_cycles(15);
+
+            disp_verify_reg(2'd0, 8'd0);
+            */
+        end
+    endtask
+
+    task edge_case_overflow;
+        begin
+            reset_CPU();
+            clear_RAM();
+            clear_ROM();
+
+            CPU.IMEM.ROM[0] = 16'h7f43; // ldi r1, 127
+            CPU.IMEM.ROM[1] = 16'h00c3; // ldi r3, 0
+            CPU.IMEM.ROM[2] = 16'h0183; // ldi r2, 1
+
+            CPU.IMEM.ROM[3] = 16'h0094; // add r2, r1
+            CPU.IMEM.ROM[4] = 16'h03be; // bgt r2, r3, 3
+
+            CPU.IMEM.ROM[5] = 16'h01c3; // ldi r3, 1
+            CPU.IMEM.ROM[6] = 16'h020c; // jmp 2
+            
+            CPU.IMEM.ROM[7] = 16'h000c; // jmp 0
+
+            $display("ldi r1, 127\nldi r3, 0\nldi r2, 1\nadd r2, r1\nbgt r2, r3, 3\nldi r3, 1\njmp 2\njmp 0\n");
+
+            repeat(30) @ (posedge clk);
+
+            tests_pass[20] = verify_reg(2'd3, 8'd1);
+            /*
+            display_cycles(30);
+
+            disp_verify_reg(2'd3, 8'd1);
+            */
+        end
+    endtask
+
+    task edge_case_reg_readwrite;
+        begin
+            reset_CPU();
+            clear_RAM();
+            clear_ROM();
+
+            CPU.IMEM.ROM[0] = 16'h0a03; // ldi r0, 10
+            CPU.IMEM.ROM[1] = 16'h2843; // ldi r1, 40
+            CPU.IMEM.ROM[2] = 16'h0014; // add r0, r1
+            CPU.IMEM.ROM[3] = 16'h0014; // add r0, r1
+
+            $display("ldi r0, 10\nldi r1, 40\nadd r0, r1\nadd r0, r1\n");
+
+            repeat(15) @ (posedge clk);
+
+            tests_pass[21] = verify_reg(2'd0, 8'd90);
+
+            /*
+            display_cycles(15);
+
+            disp_verify_reg(2'd0, 8'd90);
+            */
+        end
+    endtask
+
+    task test_sub_vs_complement_add_memfile;
+        begin
+            clear_ROM();
+            clear_RAM();
+            $readmemh("programs/sub_vs_complement_add.hex", CPU.IMEM.ROM);
+            reset_CPU();
+
+            repeat(150) @(posedge clk);
+
+            tests_pass[22] = (verify_dmem(8'd0, 8'd34) &&
+                              verify_dmem(8'd1, 8'd34) &&
+                              verify_dmem(8'd2, 8'd1) &&
+                              verify_dmem(8'd3, 8'd222) &&
+                              verify_dmem(8'd4, 8'd222) &&
+                              verify_dmem(8'd5, 8'd1) &&
+                              verify_reg(2'd0, 8'd1) &&
+                              verify_reg(2'd1, 8'd1) &&
+                              verify_reg(2'd2, 8'd222) &&
+                              verify_reg(2'd3, 8'd5));
+
+            /*
+            disp_verify_dmem(8'd0, 8'd34);
+            disp_verify_dmem(8'd1, 8'd34);
+            disp_verify_dmem(8'd2, 8'd1);
+            disp_verify_dmem(8'd3, 8'd222);
+            disp_verify_dmem(8'd4, 8'd222);
+            disp_verify_dmem(8'd5, 8'd1);
+
+            disp_verify_reg(2'd0, 8'd1);
+            disp_verify_reg(2'd1, 8'd1);
+            disp_verify_reg(2'd2, 8'd222);
+            disp_verify_reg(2'd3, 8'd5);
+            */
+        
+        end
+    endtask
+
+    task fibonacci_signed;
+        begin
+            reset_CPU();
+            clear_RAM();
+            clear_ROM();
+
+            CPU.IMEM.ROM[0] = 16'h0003; // ldi r0, 0
+            CPU.IMEM.ROM[1] = 16'h0143; // ldi r1, 1
+            CPU.IMEM.ROM[2] = 16'h00c3; // ldi r3, 0
+
+            CPU.IMEM.ROM[3] = 16'h0031; // store r0, (r3)   
+            CPU.IMEM.ROM[4] = 16'h01c5; // addi r3, 1
+            CPU.IMEM.ROM[5] = 16'h0071; // store r1, (r3)   
+            CPU.IMEM.ROM[6] = 16'h01c5; // addi r3, 1
+
+            CPU.IMEM.ROM[7] = 16'h0082; // mov r2, r0
+            CPU.IMEM.ROM[8] = 16'h0094; // add r2, r1      
+            CPU.IMEM.ROM[9] = 16'h062e; // bgt r0, r2, 6    
+
+            CPU.IMEM.ROM[10] = 16'h00b1; // store r2, (r3)
+            CPU.IMEM.ROM[11] = 16'h01c5; // addi r3, 1
+            CPU.IMEM.ROM[12] = 16'h0012; // mov r0, r1
+            CPU.IMEM.ROM[13] = 16'h0062; // mov r1, r2
+            CPU.IMEM.ROM[14] = 16'hf90c; // jmp -7          
+
+            CPU.IMEM.ROM[15] = 16'h000c; // jmp 0            
+
+            $display("ldi r0, 0\nldi r1, 1\nldi r3, 0\nstore r0, (r3)\naddi r3, 1\nstore r1, (r3)\naddi r3, 1\nmov r2, r0\nadd r2, r1\nbgt r0, r2, 6\nstore r2, (r3)\naddi r3, 1\nmov r0, r1\nmov r1, r2\njmp -7\njmp 0\n");
+
+            repeat(300) @(posedge clk);
+
+            tests_pass[23] = (verify_dmem(8'd0, 8'd0) &&
+                              verify_dmem(8'd1, 8'd1) &&
+                              verify_dmem(8'd2, 8'd1) &&
+                              verify_dmem(8'd3, 8'd2) &&
+                              verify_dmem(8'd4, 8'd3) &&
+                              verify_dmem(8'd5, 8'd5) &&
+                              verify_dmem(8'd6, 8'd8) &&
+                              verify_dmem(8'd7, 8'd13) &&
+                              verify_dmem(8'd8, 8'd21) && 
+                              verify_dmem(8'd9, 8'd34) &&
+                              verify_dmem(8'd10, 8'd55) &&
+                              verify_dmem(8'd11, 8'd89) &&
+                              verify_reg(2'd3, 8'd12));
+
+            /*
+            disp_verify_dmem(8'd0, 8'd0);
+            disp_verify_dmem(8'd1, 8'd1);
+            disp_verify_dmem(8'd2, 8'd1);
+            disp_verify_dmem(8'd3, 8'd2);
+            disp_verify_dmem(8'd4, 8'd3);
+            disp_verify_dmem(8'd5, 8'd5);
+            disp_verify_dmem(8'd6, 8'd8);
+            disp_verify_dmem(8'd7, 8'd13);
+            disp_verify_dmem(8'd8, 8'd21);
+            disp_verify_dmem(8'd9, 8'd34);
+            disp_verify_dmem(8'd10, 8'd55);
+            disp_verify_dmem(8'd11, 8'd89);
+
+            disp_verify_reg(2'd3, 8'd12);
+            */
         end
     endtask
 
@@ -1204,6 +1201,46 @@ module cpu_top_tb;
         end
     endtask
 
+    task egyptian_multiplication;
+        begin
+            reset_CPU();
+            clear_RAM();
+            clear_ROM();
+
+            CPU.IMEM.ROM[0]  = 16'h0d03; // ldi r0, 13
+            CPU.IMEM.ROM[1]  = 16'h0943; // ldi r1, 9
+            CPU.IMEM.ROM[2]  = 16'h0083; // ldi r2, 0
+
+            CPU.IMEM.ROM[3]  = 16'h00c3; // ldi r3, 0
+            CPU.IMEM.ROM[4]  = 16'h0071; // store r1, (r3)
+
+            CPU.IMEM.ROM[5]  = 16'h027d; // bne r1, r3, 2
+            CPU.IMEM.ROM[6]  = 16'h0a0c; // jmp 10
+
+            CPU.IMEM.ROM[7]  = 16'h0777; // slli r1, 7
+            CPU.IMEM.ROM[8]  = 16'h0767; //  slri r1, 7
+
+            CPU.IMEM.ROM[9]  = 16'h027d; // bne r1, r3, 2
+            CPU.IMEM.ROM[10] = 16'h020c; // jmp 2
+            CPU.IMEM.ROM[11] = 16'h0084; // add r2, r0
+
+            CPU.IMEM.ROM[12] = 16'h0070; // load r1, (r3)
+            CPU.IMEM.ROM[13] = 16'h0167; //  slri r1, 1
+            CPU.IMEM.ROM[14] = 16'h0117; // slli r0, 1
+
+            CPU.IMEM.ROM[15] = 16'hf40c; // jmp -12
+            CPU.IMEM.ROM[16] = 16'h000c; // jmp 0
+
+            $display("ldi r0, 13\nldi r1, 9\nldi r2, 0\nldi r3, 0\nstore r1, (r3)\nbne r1, r3, 2\njmp 10\nslli r1, 7\n slri r1, 7\nbne r1, r3, 2\njmp 2\nadd r2, r0\nload r1, (r3)\n slri r1, 1\nslli r0, 1\njmp -12\njmp 0\n");
+
+            repeat(300) @ (posedge clk);
+
+            tests_pass[25] = verify_reg(2'd2, 8'd117);
+
+            disp_verify_reg(2'd2, 8'd117);
+        end
+    endtask
+
     task auto_test;
         begin
             test_ldi_add_mov();
@@ -1234,16 +1271,6 @@ module cpu_top_tb;
 
             test_bgt_equal_untaken();
 
-            edge_case_modulo();
-
-            edge_case_overflow();
-
-            edge_case_reg_readwrite();
-
-            fibonacci_signed();
-
-            egyptian_multiplication();
-
             test_bgtu_edge_case1_taken();
 
             test_bgtu_edge_case1_untaken();
@@ -1253,8 +1280,20 @@ module cpu_top_tb;
             test_bgtu_edge_case2_untaken();
 
             test_bgtu_equal_untaken();
-            
+
+            edge_case_modulo();
+
+            edge_case_overflow();
+
+            edge_case_reg_readwrite();
+
+            test_sub_vs_complement_add_memfile();
+
+            fibonacci_signed();
+
             fibonacci_unsigned();
+
+            egyptian_multiplication();
 
             for (l = 0; l < TOTAL_TESTS; l = l + 1)
                 begin
@@ -1311,16 +1350,6 @@ module cpu_top_tb;
 
         //test_bgt_equal_untaken();
 
-        //edge_case_modulo();
-
-        //edge_case_overflow();
-
-        //edge_case_reg_readwrite();
-
-        //fibonacci_signed();
-
-        //egyptian_multiplication();
-
         //test_bgtu_edge_case1_taken();
 
         //test_bgtu_edge_case1_untaken();
@@ -1331,7 +1360,19 @@ module cpu_top_tb;
 
         //test_bgtu_equal_untaken();
 
+        //edge_case_modulo();
+
+        //edge_case_overflow();
+
+        //edge_case_reg_readwrite();
+
+        //test_sub_vs_complement_add_memfile();
+
+        //fibonacci_signed();
+
         //fibonacci_unsigned();
+
+        //egyptian_multiplication();
 
         auto_test();
 
