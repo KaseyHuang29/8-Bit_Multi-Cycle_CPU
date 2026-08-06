@@ -56,7 +56,8 @@ The processor uses a finite state machine (FSM) to control the multi-cycle execu
 * Cycle 3: Some instructions require an extra clock cycle to complete
 
 ## Instruction Set
-The processor uses a custom 18-instruction ISA, encoded by 16 4-bit opcodes (0000-1111). Note: the SHIFT instruction uses additional bits in its encoding to support left/right and logical/arithmetic shifts.
+The processor uses a custom 18-instruction ISA, encoded by 16 4-bit opcodes (0000-1111). 
+Note: the SHIFT instruction uses additional bits in its encoding to support left/right and logical/arithmetic shifts.
 
 | Instruction | Opcode | Syntax | Operation |
 |----|----|----|----|
