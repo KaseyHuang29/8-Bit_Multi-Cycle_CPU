@@ -89,17 +89,17 @@ Programs can be loaded in two ways:
 
     Example: 
 
-     `CPU.IMEM.ROM[0] = 16'h0503; // ldi r0, 5`
+    `CPU.IMEM.ROM[0] = 16'h0503; // ldi r0, 5`
 
-2. Load instructions to the memory from a hexadecimal memory initialization file using  `$readmemh`
+2. Load instructions to the memory from a hexadecimal memory initialization file using `$readmemh`
 
     Example: 
 
-     `$readmemh("programs/example_program.hex", CPU.IMEM.ROM);`
+    `$readmemh("programs/example_program.hex", CPU.IMEM.ROM);`
 
     and inside `example_program.hex`:
 
-     `0503 // ldi r0, 5`
+    `0503 // ldi r0, 5`
 
 ## Testbench and Verification
 The processor is tested using both manual and self-checking Verilog testbenches against several programs designed to verify the functionality of all instructions. Each program is tested in its own separate task, and each type of check (ie. checking RF register values, data memory contents, current clock cycle, etc) is also written as its own task.
@@ -108,7 +108,7 @@ The processor is tested using both manual and self-checking Verilog testbenches 
 The waveform viewer, Surfer, was used to inspect the multi-cycle execution of instructions as well as relevant control signals and register or memory values. 
 
     Example: 
-    
+``
     `surfer tb/cpu_top_tb.vcd`
 
 ### Automated Verification
@@ -176,7 +176,7 @@ f90c
 000c
 ```
 
-The results can be verified using the task, `disp_verify_dmem`, which displays both the expected and actual data memory contents, as well as its pass/fail state:
+The results can be verified using the task, `disp_verify_dmem`, which displays to the terminal both the expected and actual data memory contents, as well as its pass/fail state:
 ```
 Expected: RAM @ 0x00 holds 00000000
 Actual: RAM @ 0x00 holds 00000000
