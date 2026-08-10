@@ -187,8 +187,8 @@ module cpu_top_tb;
                 default: $display("invalid register.\n");
             endcase
 
-            $display("Expected: r%0d holds %0d", reg_select, expected_data);
-            $display("Actual: r%0d holds %0d", reg_select, regData);
+            $display("Expected: r%0d holds %b (8'd%0d)", reg_select, expected_data, expected_data);
+            $display("Actual: r%0d holds %b (8'd%0d)", reg_select, regData, regData);
 
             if (pass)
                     $display("PASS\n");
@@ -208,8 +208,8 @@ module cpu_top_tb;
             dmemData = CPU.DMEM.RAM[address];
             pass = (expected_data == dmemData);
 
-            $display("Expected: RAM @ 0x%h holds %b", address, expected_data);
-            $display("Actual: RAM @ 0x%h holds %b", address, dmemData);
+            $display("Expected: RAM @ 0x%h holds %b (8'd%0d)", address, expected_data, expected_data);
+            $display("Actual: RAM @ 0x%h holds %b (8'd%0d)", address, dmemData, dmemData);
 
             if (pass)
                 $display("PASS\n");
@@ -1180,7 +1180,7 @@ module cpu_top_tb;
                             verify_dmem(8'd13, 8'd233) &&
                             verify_reg(2'd3, 8'd14));
 
-            /*
+            
             disp_verify_dmem(8'd0, 8'd0);
             disp_verify_dmem(8'd1, 8'd1);
             disp_verify_dmem(8'd2, 8'd1);
@@ -1197,7 +1197,7 @@ module cpu_top_tb;
             disp_verify_dmem(8'd13, 8'd233);
 
             disp_verify_reg(2'd3, 8'd14);
-            */
+            
         end
     endtask
 
@@ -1370,11 +1370,11 @@ module cpu_top_tb;
 
         //fibonacci_signed();
 
-        //fibonacci_unsigned();
+        fibonacci_unsigned();
 
         //egyptian_multiplication();
 
-        auto_test();
+        //auto_test();
 
         $finish;
 

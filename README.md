@@ -178,59 +178,59 @@ f90c
 
 The results can be verified using the task, `disp_verify_dmem`, which displays to the terminal both the expected and actual data memory contents, as well as its pass/fail state:
 ```
-Expected: RAM @ 0x00 holds 00000000
-Actual: RAM @ 0x00 holds 00000000
+Expected: RAM @ 0x00 holds 00000000 (8'd0)
+Actual: RAM @ 0x00 holds 00000000 (8'd0)
 PASS
 
-Expected: RAM @ 0x01 holds 00000001
-Actual: RAM @ 0x01 holds 00000001
+Expected: RAM @ 0x01 holds 00000001 (8'd1)
+Actual: RAM @ 0x01 holds 00000001 (8'd1)
 PASS
 
-Expected: RAM @ 0x02 holds 00000001
-Actual: RAM @ 0x02 holds 00000001
+Expected: RAM @ 0x02 holds 00000001 (8'd1)
+Actual: RAM @ 0x02 holds 00000001 (8'd1)
 PASS
 
-Expected: RAM @ 0x03 holds 00000010
-Actual: RAM @ 0x03 holds 00000010
+Expected: RAM @ 0x03 holds 00000010 (8'd2)
+Actual: RAM @ 0x03 holds 00000010 (8'd2)
 PASS
 
-Expected: RAM @ 0x04 holds 00000011
-Actual: RAM @ 0x04 holds 00000011
+Expected: RAM @ 0x04 holds 00000011 (8'd3)
+Actual: RAM @ 0x04 holds 00000011 (8'd3)
 PASS
 
-Expected: RAM @ 0x05 holds 00000101
-Actual: RAM @ 0x05 holds 00000101
+Expected: RAM @ 0x05 holds 00000101 (8'd5)
+Actual: RAM @ 0x05 holds 00000101 (8'd5)
 PASS
 
-Expected: RAM @ 0x06 holds 00001000
-Actual: RAM @ 0x06 holds 00001000
+Expected: RAM @ 0x06 holds 00001000 (8'd8)
+Actual: RAM @ 0x06 holds 00001000 (8'd8)
 PASS
 
-Expected: RAM @ 0x07 holds 00001101
-Actual: RAM @ 0x07 holds 00001101
+Expected: RAM @ 0x07 holds 00001101 (8'd13)
+Actual: RAM @ 0x07 holds 00001101 (8'd13)
 PASS
 
-Expected: RAM @ 0x08 holds 00010101
-Actual: RAM @ 0x08 holds 00010101
+Expected: RAM @ 0x08 holds 00010101 (8'd21)
+Actual: RAM @ 0x08 holds 00010101 (8'd21)
 PASS
 
-Expected: RAM @ 0x09 holds 00100010
-Actual: RAM @ 0x09 holds 00100010
+Expected: RAM @ 0x09 holds 00100010 (8'd34)
+Actual: RAM @ 0x09 holds 00100010 (8'd34)
 PASS
 
-Expected: RAM @ 0x0a holds 00110111
-Actual: RAM @ 0x0a holds 00110111
+Expected: RAM @ 0x0a holds 00110111 (8'd55)
+Actual: RAM @ 0x0a holds 00110111 (8'd55)
 PASS
 
-Expected: RAM @ 0x0b holds 01011001
-Actual: RAM @ 0x0b holds 01011001
+Expected: RAM @ 0x0b holds 01011001 (8'd89)
+Actual: RAM @ 0x0b holds 01011001 (8'd89)
 PASS
 
-Expected: RAM @ 0x0c holds 10010000
-Actual: RAM @ 0x0c holds 10010000
+Expected: RAM @ 0x0c holds 10010000 (8'd144)
+Actual: RAM @ 0x0c holds 10010000 (8'd144)
 PASS
 
-Expected: RAM @ 0x0d holds 11101001
-Actual: RAM @ 0x0d holds 11101001
+Expected: RAM @ 0x0d holds 11101001 (8'd233)
+Actual: RAM @ 0x0d holds 11101001 (8'd233)
 PASS
 ```
