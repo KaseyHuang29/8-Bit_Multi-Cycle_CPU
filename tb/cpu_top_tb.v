@@ -1370,11 +1370,11 @@ module cpu_top_tb;
 
         //fibonacci_signed();
 
-        fibonacci_unsigned();
+        //fibonacci_unsigned();
 
         //egyptian_multiplication();
 
-        //auto_test();
+        auto_test();
 
         $finish;
 

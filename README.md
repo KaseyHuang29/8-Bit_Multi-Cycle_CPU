@@ -109,7 +109,9 @@ The waveform viewer, Surfer, was used to inspect the multi-cycle execution of in
 
 Example:
 
-`surfer tb/cpu_top_tb.vcd`
+`ldi r0, 5`
+
+![Example ldi r0, 5](docs/ldi_r0_5.png)
 
 ### Automated Verification
 To verify correctness, expected register or data memory values are compared against the actual values. An N-bit wide `tests_pass` vector is used, where N is the total number of tests. Each bit represents the passing state of one test, with a pass indicated by a `1`, and a fail indicated by a `0`. The vector is then used to display a pass/fail summary at the end of the simulation. 
